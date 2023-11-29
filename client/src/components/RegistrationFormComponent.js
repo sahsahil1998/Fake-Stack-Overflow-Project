@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 export default function RegistrationFormComponent() {
     const [formData, setFormData] = useState({
@@ -8,17 +9,35 @@ export default function RegistrationFormComponent() {
         password: ''
     });
 
+    const navigate = useNavigate();
+
+    const validateEmail = (email) => {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+    };
+
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Client-side Validation
+        if (!validateEmail(formData.email)) {
+            alert('Please enter a valid email address');
+            return;
+        }
+
+        if (formData.password.includes(formData.username) || formData.password.includes(formData.email)) {
+            alert('Password should not contain username or email');
+            return;
+        }
+
         try {
-            // Replace with your backend API endpoint
             await axios.post('http://localhost:8000/api/users/register', formData);
             alert('User registered successfully');
-            // Redirect user or clear form
+            navigate('/login'); // Redirect to login page after successful registration
         } catch (error) {
             alert('Registration failed: ' + error.response.data);
         }
