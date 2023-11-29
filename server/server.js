@@ -27,11 +27,13 @@ app.use(express.json());
 const questionRoutes = require('./routes/routes');
 const answerRoutes = require('./routes/answerRoutes');
 const tagRoutes = require('./routes/tagsRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 // Connect routes to the application
 app.use('/questions', questionRoutes);
 app.use('/answers', answerRoutes);
 app.use('/tags', tagRoutes);
+app.use('/api/users', userRoutes);
 
 // Start the server
 app.listen(port, () => {
