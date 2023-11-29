@@ -3,47 +3,43 @@ import { Route, Routes, HashRouter } from 'react-router-dom';
 
 // Importing individual page and layout components
 import WelcomePageComponent from './WelcomePageComponent.js';
-import HeaderComponent from './HeaderComponent.js';
 import HomePageComponent from './HomePageComponent.js';
 import TagsPageComponent from './TagsPageComponent.js';
 import AnswersPageComponent from './AnswersPageComponent.js';
 import AskQuestionComponent from './AskQuestionComponent.js';
 import SearchResultsComponent from './SearchResultsComponent.js';
-import SidebarComponent from './SidebarComponent.js';
 import NewAnswerComponent from './NewAnswerComponent.js';
 import QuestionTagsPage from './QuestionsTagsPage.js';
 import RegistrationFormComponent from './RegistrationFormComponent.js';
-
-// Importing global styles for the application
-import '../stylesheets/index.css';
+import LoginPageComponent from './LoginPageComponent.js';
+import MainLayout from './MainLayout.js';
 
 const FakeStackOverflow = () => {
-  // Function to determine if it's the home page
-  const isHomePage = window.location.hash === '#/home';
-
   return (
     <HashRouter>
       <div className='container'>
-        {/* Conditionally render HeaderComponent and SidebarComponent */}
-        {isHomePage && <HeaderComponent />}
-        {isHomePage && <SidebarComponent />}
-
         <Routes>
           {/* Set WelcomePageComponent as the default route */}
           <Route path="/" element={<WelcomePageComponent />} />
-          <Route path="/home" element={<HomePageComponent />} />
-          {/* Other routes */}
+
+          {/* Individual routes for login and registration */}
+          <Route path="/login" element={<LoginPageComponent />} />
           <Route path="/register" element={<RegistrationFormComponent />} />
-          <Route path="/questions/:qid/answer" element={<NewAnswerComponent />} />
-          <Route path="/questions/:qid" element={<AnswersPageComponent />} />
-          <Route path="/tags" element={<TagsPageComponent />} />
-          <Route path="/ask" element={<AskQuestionComponent />} />
-          <Route path="/search" element={<SearchResultsComponent />} /> 
-          <Route path="/tags/:tid" element={<QuestionTagsPage />} />
+
+          {/* Nested routes within MainLayout for authenticated pages */}
+          <Route element={<MainLayout />}>
+            <Route path="/home" element={<HomePageComponent />} />
+            {/* Other routes inside MainLayout */}
+            <Route path="/questions/:qid/answer" element={<NewAnswerComponent />} />
+            <Route path="/questions/:qid" element={<AnswersPageComponent />} />
+            <Route path="/tags" element={<TagsPageComponent />} />
+            <Route path="/ask" element={<AskQuestionComponent />} />
+            <Route path="/search" element={<SearchResultsComponent />} /> 
+            <Route path="/tags/:tid" element={<QuestionTagsPage />} />
+          </Route>
         </Routes>
       </div>
     </HashRouter>
   );
 };
-
 export default FakeStackOverflow;
