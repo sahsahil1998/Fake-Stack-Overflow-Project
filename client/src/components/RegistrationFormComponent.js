@@ -6,7 +6,8 @@ export default function RegistrationFormComponent() {
     const [formData, setFormData] = useState({
         username: '',
         email: '',
-        password: ''
+        password: '',
+        confirmPassword: ''
     });
 
     const navigate = useNavigate();
@@ -31,6 +32,12 @@ export default function RegistrationFormComponent() {
 
         if (formData.password.includes(formData.username) || formData.password.includes(formData.email)) {
             alert('Password should not contain username or email');
+            return;
+        }
+
+        // Additional validation for password confirmation
+        if (formData.password !== formData.confirmPassword) {
+            alert('Passwords do not match');
             return;
         }
 
@@ -68,6 +75,14 @@ export default function RegistrationFormComponent() {
                     value={formData.password} 
                     onChange={handleChange} 
                     placeholder="Password" 
+                    required
+                />
+                <input 
+                    type="password" 
+                    name="confirmPassword" 
+                    value={formData.confirmPassword} 
+                    onChange={handleChange} 
+                    placeholder="Confirm Password" 
                     required
                 />
                 <button type="submit">Register</button>
