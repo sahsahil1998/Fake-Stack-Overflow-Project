@@ -50,6 +50,11 @@
     .buttonDeco:hover {
       background-color: rgb(98, 98, 203); /* Darker background color on hover */
     }
+
+    button[disabled] {
+      background-color: #ccc;
+      cursor: not-allowed;
+  }
     
     .postTitle {
       margin-left: 100px;

@@ -4,15 +4,50 @@ const Question = require('../models/questions');
 const Tag = require('../models/tags');
 const Answer = require('../models/answers');
 
-// GET all questions
 router.get('/', async (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const sortOption = req.query.sort || 'newest';
+
+    let sortCriteria;
+    let filterCriteria = {};
+    switch (sortOption) {
+        case 'newest':
+            sortCriteria = { ask_date_time: -1 };
+            break;
+        case 'active':
+            sortCriteria = { last_answered_time: -1 };
+            break;
+        case 'unanswered':
+            // Assuming that answers are stored as an array in questions
+            sortCriteria = { ask_date_time: -1 };
+            filterCriteria = { answers: { $size: 0 } }; // Filter for questions with no answers
+            break;
+        default:
+            sortCriteria = { ask_date_time: -1 };
+    }
+
     try {
-        const questions = await Question.find().populate('tags').populate('answers');
-        res.json(questions);
+        // Count the documents based on the filter criteria for accurate pagination
+        const totalQuestions = await Question.countDocuments(filterCriteria);
+
+        // Fetch the questions based on the page, limit, and filter criteria
+        const questions = await Question.find(filterCriteria)
+            .populate('tags')
+            .populate('answers')
+            .sort(sortCriteria)
+            .limit(limit)
+            .skip((page - 1) * limit);
+
+        res.json({
+            questions,
+            totalCount: totalQuestions // Send back the total count for accurate pagination on the frontend
+        });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 });
+
 
 // Enhanced search functionality
 router.get('/search', async (req, res) => {
