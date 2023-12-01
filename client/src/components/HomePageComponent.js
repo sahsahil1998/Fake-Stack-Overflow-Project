@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import PropTypes from 'prop-types';
 
 // Importing the stylesheet for the home page
 import '../stylesheets/homepage.css';
@@ -158,5 +159,10 @@ const HomePageComponent = ({ query }) => {
         </div>
     );
 };
+
+//Define prop types
+HomePageComponent.propTypes = {
+    query: PropTypes.string
+};  
 
 export default HomePageComponent;
