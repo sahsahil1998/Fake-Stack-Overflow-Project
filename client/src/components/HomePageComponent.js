@@ -15,7 +15,17 @@ const HomePageComponent = ({ query }) => {
     const [totalQuestions, setTotalQuestions] = useState(0);
     const [noQuestionsFound, setNoQuestionsFound] = useState(false);
     const [viewType, setViewType] = useState('newest'); // Default view type
+    const [isAuthenticated, setIsAuthenticated] = useState(false); // Added state to track authentication
     const navigate = useNavigate();
+
+    useEffect(() => {
+        // Fetch user session status on component mount
+        axios.get('http://localhost:8000/api/users/check-session', { withCredentials: true })
+            .then(response => {
+                setIsAuthenticated(response.data.isLoggedIn);
+            })
+            .catch(error => console.error('Error checking user session:', error));
+    }, []);
 
     // Reset currentPage to 1 when viewType changes
     useEffect(() => {
@@ -82,7 +92,12 @@ return (
         <div className='main-top'>
             <h1>All Questions</h1>
             <p>{totalQuestions} questions</p>
-            <button onClick={() => navigate('/ask')} className='mainDivAskButton'>Ask a Question</button>
+            {/* Conditionally render the button based on isAuthenticated */}
+            {isAuthenticated ? (
+                    <button onClick={() => navigate('/ask')} className='mainDivAskButton'>Ask a Question</button>
+                ) : (
+                    <button disabled className='mainDivAskButton'>Ask a Question</button>
+                )}
         </div>
 
         {/* Buttons to change the view type of questions */}

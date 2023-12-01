@@ -63,18 +63,31 @@ router.post('/login', async (req, res) => {
         console.log("Password match:", isMatch);
 
         if (isMatch) {
-            // Store user information in the session
             req.session.user = { id: user._id, username: user.username };
-            console.log("Login successful for user:", username, "Session:", req.session);
-            return res.send({ message: 'Login successful' }); // Use 'return' to ensure the function exits after sending response
-        } else {
-            return res.status(401).send({ message: 'Invalid username or password' });
+            req.session.save(err => {
+                if (err) {
+                    console.error('Session save error:', err);
+                    return res.status(500).send({ message: 'Error during login' });
+                }
+                return res.send({ message: 'Login successful' });
+            });
         }
     } catch (error) {
         console.error('Login error:', error);
         res.status(500).send({ message: 'Error during login' });
     }
 });
+
+router.get('/check-session', (req, res) => {
+    if (req.session && req.session.user) {
+        // User is logged in
+        res.json({ isLoggedIn: true, user: req.session.user });
+    } else {
+        // User is not logged in
+        res.json({ isLoggedIn: false });
+    }
+});
+
 
 
 // User logout route
