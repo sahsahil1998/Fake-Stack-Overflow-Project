@@ -26,7 +26,7 @@ const SidebarComponent = () => {
                         className={`sidebarButton ${currentView === 'questions' ? 'active' : ''}`}
                         id="questionsButton"
                         style={{ cursor: 'pointer' }}
-                        onClick={() => navigate("/")}
+                        onClick={() => navigate("/home")}
                     >
                         Questions
                     </button>

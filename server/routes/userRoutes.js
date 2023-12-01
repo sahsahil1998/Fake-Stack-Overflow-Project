@@ -31,7 +31,11 @@ router.post('/register', async (req, res) => {
             return res.status(409).send("User already exists with the same username or email");
         }
 
-        const user = new User({ username, email, password });
+        // Hash the password before saving the user
+        const salt = await bcrypt.genSalt(10);
+        const passwordHash = await bcrypt.hash(password, salt);
+
+        const user = new User({ username, email, passwordHash }); // Use passwordHash
         await user.save();
 
         res.status(201).send("User created successfully");
@@ -45,33 +49,33 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
-        console.log("Login attempt for user:", username); // Log the username attempting to log in
+        console.log("Login attempt for user:", username);
 
         const user = await User.findOne({ username });
-        console.log("User found:", user); // Log the found user
+        console.log("User found:", user);
 
         if (!user) {
-            console.log("User not found for username:", username); // Log if user not found
+            console.log("User not found for username:", username);
             return res.status(401).send({ message: 'Invalid username or password' });
         }
 
         const isMatch = await bcrypt.compare(password, user.passwordHash);
-        console.log("Password match:", isMatch); // Log password match result
+        console.log("Password match:", isMatch);
 
         if (isMatch) {
             // Store user information in the session
             req.session.user = { id: user._id, username: user.username };
             console.log("Login successful for user:", username, "Session:", req.session);
-            res.send({ message: 'Login successful' });
+            return res.send({ message: 'Login successful' }); // Use 'return' to ensure the function exits after sending response
+        } else {
+            return res.status(401).send({ message: 'Invalid username or password' });
         }
-
-        console.log("Login successful for user:", username); // Log successful login
-        res.send({ message: 'Login successful' });
     } catch (error) {
-        console.error('Login error:', error); // Log the error details
+        console.error('Login error:', error);
         res.status(500).send({ message: 'Error during login' });
     }
 });
+
 
 // User logout route
 router.get('/logout', (req, res) => {

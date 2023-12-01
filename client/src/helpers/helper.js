@@ -47,3 +47,24 @@ export const fetchQuestionsByTag = async (tagId) => {
         throw error; // Rethrowing the error for handling by the caller
     }
 };
+
+// Function to format the date and time of questions
+const formatDate = (askDateTime) => {
+    const now = new Date();
+    const askDate = new Date(askDateTime);
+    const diffInSeconds = Math.floor((now - askDate) / 1000);
+
+    if (diffInSeconds < 60) return `${diffInSeconds} seconds ago`;
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+
+    return new Intl.DateTimeFormat('en-US', { 
+        month: 'short', 
+        day: '2-digit', 
+        year: 'numeric', 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        hour12: false, 
+        hourCycle: 'h23'
+    }).format(askDate).replace(/,/g, '');
+};
