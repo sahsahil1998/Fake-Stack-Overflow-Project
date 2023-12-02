@@ -14,7 +14,8 @@ const QuestionSchema = new Schema({
     answers: [{ type: Schema.Types.ObjectId, ref: 'Answer' }], // Array of references to Answer documents
     summary: String, // Summary of the question
     answerCount: { type: Number, default: 0 }, // Tracks the number of answers
-    votes: { type: Number, default: 0 }, // Total votes for the question
+    upvotes: { type: Number, default: 0 },
+    downvotes: { type: Number, default: 0 },
     asked_by: String, // The author of the question
     ask_date_time: Date, // Date and time when the question was asked
     views: Number, // Number of views for the question

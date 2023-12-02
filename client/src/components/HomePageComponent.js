@@ -127,8 +127,15 @@ return (
                         <div className="postStats">
                             <p>{question.answers.length} answers</p>
                             <p>{question.views || 0} views</p>
-                            {/* Include votes if available */}
-                            {question.votes && <p>{question.votes} votes</p>}
+                            {/*}
+                            
+                            <div className="voting-buttons">
+                                    <button onClick={() => handleVote(question.qid, 'upvote')}>Upvote</button>
+                                    <p>Upvotes: {question.upvotes}</p>
+                                    <button onClick={() => handleVote(question.qid, 'downvote')}>Downvote</button>
+                                    <p>Downvotes: {question.downvotes}</p>
+                            </div>
+                */}
                         </div>
                         {/* Question title and navigation */}
                         <h2 className="postTitle">
