@@ -10,8 +10,9 @@ const AnswerSchema = new Schema({
     aid: { type: String, unique: true }, // Unique identifier for each answer
     question: { type: Schema.Types.ObjectId, ref: 'Question' }, // Reference to the associated question document
     text: String, // Text content of the answer
-    ans_by: String, // The author of the answer
-    ans_date_time: Date // Date and time when the answer was provided
+    ans_date_time: Date, // Date and time when the answer was provided
+    ans_by: { type: Schema.Types.ObjectId, ref: 'User' }, // Link to User model
+    comments: [{ type: Schema.Types.ObjectId, ref: 'Comment' }] // Array of Comment references
 });
 
 // Pre-save hook for AnswerSchema

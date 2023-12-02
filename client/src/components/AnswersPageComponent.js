@@ -2,33 +2,24 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-
+import CommentsComponent from './CommentsComponent';
 // Importing stylesheet for the page
 import '../stylesheets/answerPage.css';
 
 // Component for displaying answers to a specific question
 const AnswersPageComponent = () => {
-    // Extracting the question ID from the URL parameters
     const { qid } = useParams();
-    // Hook for navigating programmatically
     const navigate = useNavigate();
-    // State for storing the question data
     const [question, setQuestion] = useState(null);
-    // State for storing potential errors
     const [error, setError] = useState('');
 
-    // Effect hook for fetching question data on component mount or when qid changes
     useEffect(() => {
         const fetchQuestionData = async () => {
             try {
-                // Fetching question data from the server
                 const response = await axios.get(`http://localhost:8000/questions/${qid}`);
                 setQuestion(response.data);
-                // Incrementing view count of the question
                 await axios.put(`http://localhost:8000/questions/increaseviewcount/${qid}`);
             } catch (error) {
-                // Handling errors in data fetching
-                console.error('Error fetching question data:', error);
                 setError('Error loading question data. Please try again later.');
             }
         };
@@ -99,13 +90,27 @@ const AnswersPageComponent = () => {
                     ))}
                 </div>
             </div>
+    
+            {/* Comments for the Question */}
+            <div className="comments-section">
+                <h4>Comments on Question:</h4>
+                <CommentsComponent parentId={qid} type="question" />
+            </div>
+    
             <h3>Answers:</h3>
             <div className="answers-section">
                 {question.answers.length > 0 ? (
-                    question.answers.sort((a, b) => new Date(b.ans_date_time) - new Date(a.ans_date_time)).map(answer => (
-                        <div key={answer.aid}>
+                    question.answers.map(answer => (
+                        <div key={answer.aid} className="answer-container">
                             <div className="answerText">{renderTextWithHyperlinks(answer.text)}</div>
                             <div className="answerAuthor">{answer.ans_by} answered {formatDate(answer.ans_date_time)}</div>
+                            
+                            {/* Comments for each Answer */}
+                            <div className="comments-section">
+                                <h4>Comments on Answer:</h4>
+                                <CommentsComponent parentId={answer.aid} type="answer" />
+                            </div>
+    
                             <hr style={{ borderTop: "1px dotted #000" }} />
                         </div>
                     ))

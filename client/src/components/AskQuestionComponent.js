@@ -1,5 +1,5 @@
 // Importing React hooks and additional libraries
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -11,26 +11,46 @@ const AskQuestionComponent = () => {
     const [title, setTitle] = useState("");
     const [text, setText] = useState("");
     const [tags, setTags] = useState("");
-    const [username, setUsername] = useState("");
     const [errors, setErrors] = useState({});
+    const [user, setUser] = useState(null); // State to store logged-in user info
+
 
     // Hook for programmatically navigating between routes
     const navigate = useNavigate();
 
+    useEffect(() => {
+        axios.get('http://localhost:8000/api/users/check-session', { withCredentials: true })
+            .then(response => {
+                if (response.data.isLoggedIn) {
+                    setUser(response.data.user);
+                } else {
+                    navigate('/login'); // Redirect to login if not authenticated
+                }
+            })
+            .catch(() => {
+                navigate('/login'); // Redirect on error or if not authenticated
+            });
+    }, [navigate]);
+
     // Function to handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const validationErrors = validateInputs(title, text, tags, username);
+
+        if (!user) {
+            navigate('/login'); // Redirect to login if user is not available
+            return;
+        }
+        const validationErrors = validateInputs(title, text, tags);
 
         // Checking for validation errors before making the API call
         if (Object.keys(validationErrors).length === 0) {
             try {
                 const tagArray = tags.split(/\s+/).filter(tag => tag.trim() !== "");
-                const postData = { title, text, tags: tagArray, askedBy: username };
+                const postData = { title, text, tags: tagArray, askedBy: user.username };
 
                 // Making a POST request to the server
                 await axios.post('http://localhost:8000/questions', postData);
-                navigate('/'); // Redirecting to the homepage on successful post
+                navigate('/home'); // Redirecting to the homepage on successful post
             } catch (error) {
                 console.error('Error posting question:', error);
                 // Optionally handle the error by updating the state
@@ -41,7 +61,7 @@ const AskQuestionComponent = () => {
     };
 
     // Function to validate form inputs
-    const validateInputs = (title, text, tags, username) => {
+    const validateInputs = (title, text, tags) => {
         let errors = {};
 
         // Validation for each input field
@@ -68,9 +88,6 @@ const AskQuestionComponent = () => {
             if (tagArray.length > 5) errors.tags = "Cannot have more than 5 tags";
             else if (tagArray.some(tag => tag.length > 20)) errors.tags = "Tag length cannot be more than 20 characters";
         }
-
-        // Validation for username
-        if (!username.trim()) errors.username = "Username cannot be empty";
     
         return errors;
     };
@@ -109,17 +126,6 @@ const AskQuestionComponent = () => {
                     onChange={(e) => setTags(e.target.value)}
                 />
                 {errors.tags && <div className="error-message">{errors.tags}</div>}
-            </div>
-            <div>
-                <h2>Username:</h2>
-                <input 
-                    type="text" 
-                    id="formUsernameInput"
-                    placeholder="Enter your username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                />
-                {errors.username && <div className="error-message">{errors.username}</div>}
             </div>
             <button type="submit" className="submitQuestionButton">Post Question</button>
         </form>

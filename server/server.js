@@ -40,6 +40,7 @@ const questionRoutes = require('./routes/routes');
 const answerRoutes = require('./routes/answerRoutes');
 const tagRoutes = require('./routes/tagsRoutes');
 const userRoutes = require('./routes/userRoutes');
+const commentRoutes = require('./routes/commentRoutes');
 
 // Connect routes to the application
 app.use('/questions', questionRoutes);
@@ -47,6 +48,7 @@ app.use('/answers', answerRoutes);
 app.use('/tags', tagRoutes);
 console.log("Connecting userRoutes");
 app.use('/api/users', userRoutes);
+app.use('/comments', commentRoutes);
 
 // Start the server
 app.listen(port, () => {

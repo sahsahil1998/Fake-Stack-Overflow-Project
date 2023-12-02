@@ -12,11 +12,12 @@ const QuestionSchema = new Schema({
     text: String, // Text content of the question
     tags: [{ type: Schema.Types.ObjectId, ref: 'Tag' }], // Array of references to Tag documents
     answers: [{ type: Schema.Types.ObjectId, ref: 'Answer' }], // Array of references to Answer documents
+    asked_by: { type: Schema.Types.ObjectId, ref: 'User' }, // Link to User model
+    comments: [{ type: String, ref: 'Comment' }], // Array of Comment references by custom string ID
     summary: String, // Summary of the question
     answerCount: { type: Number, default: 0 }, // Tracks the number of answers
     upvotes: { type: Number, default: 0 },
     downvotes: { type: Number, default: 0 },
-    asked_by: String, // The author of the question
     ask_date_time: Date, // Date and time when the question was asked
     views: Number, // Number of views for the question
     last_answered_time: Date, // Date and time of the last answer to the question
