@@ -14,6 +14,8 @@ import RegistrationFormComponent from './RegistrationFormComponent.js';
 import LoginPageComponent from './LoginPageComponent.js';
 import MainLayout from './MainLayout.js';
 import UserProfile from './UserProfile.js';
+import UserQuestionComponent from './UserQuestionComponent.js';
+import UserAnswerComponent from './UserAnswerQuestionComponent.js';
 
 const FakeStackOverflow = () => {
   return (
@@ -38,6 +40,8 @@ const FakeStackOverflow = () => {
             <Route path="/search" element={<SearchResultsComponent />} /> 
             <Route path="/tags/:tid" element={<QuestionTagsPage />} />
             <Route path="/userprofile" element={<UserProfile />} />
+            <Route path="/userprofile/questions" element={<UserQuestionComponent />} />
+            <Route path="/userprofile/answers" element={<UserAnswerComponent />} />
           </Route>
         </Routes>
       </div>
