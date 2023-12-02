@@ -10,72 +10,58 @@ import '../stylesheets/homepage.css';
 const HomePageComponent = ({ query }) => {
     // State hooks for managing questions data and display
     const [questions, setQuestions] = useState([]);
-    const [displayedQuestions, setDisplayedQuestions] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const questionsPerPage = 5;
     const [totalQuestions, setTotalQuestions] = useState(0);
     const [noQuestionsFound, setNoQuestionsFound] = useState(false);
     const [viewType, setViewType] = useState('newest'); // Default view type
+    const [isAuthenticated, setIsAuthenticated] = useState(false); // Added state to track authentication
     const navigate = useNavigate();
 
-    // Effect hook to fetch questions based on query or viewType change
+    useEffect(() => {
+        // Fetch user session status on component mount
+        axios.get('http://localhost:8000/api/users/check-session', { withCredentials: true })
+            .then(response => {
+                setIsAuthenticated(response.data.isLoggedIn);
+            })
+            .catch(error => console.error('Error checking user session:', error));
+    }, []);
+
+    // Reset currentPage to 1 when viewType changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [viewType]);
+    
+    // Effect hook to fetch questions based on query, viewType, or currentPage change
     useEffect(() => {
         const fetchURL = query 
-            ? `http://localhost:8000/questions/search?query=${encodeURIComponent(query)}` 
-            : 'http://localhost:8000/questions/';
+            ? `http://localhost:8000/questions/search?query=${encodeURIComponent(query)}&sort=${viewType}&page=${currentPage}&limit=${questionsPerPage}`
+            : `http://localhost:8000/questions/?sort=${viewType}&page=${currentPage}&limit=${questionsPerPage}`;
     
         axios.get(fetchURL)
             .then(response => {
-                setQuestions(response.data);
-                setTotalQuestions(response.data.length);
-                sortAndDisplayQuestions(response.data, viewType);
+                setQuestions(response.data.questions);
+                setTotalQuestions(response.data.totalCount);
+                setNoQuestionsFound(response.data.questions.length === 0);
             })
             .catch(error => {
                 console.error('Error fetching questions:', error);
                 setNoQuestionsFound(true);
                 setTotalQuestions(0);
             });
-    }, [query, viewType]);
+    }, [query, viewType, currentPage]);
 
-    // Effect hook to sort questions whenever the questions list or viewType changes
-    useEffect(() => {
-        sortAndDisplayQuestions(questions, viewType);
-    }, [questions, viewType]);
+    // Calculate the total number of pages
+    const totalPages = Math.ceil(totalQuestions / questionsPerPage);
 
-    // Function to sort questions based on the selected view type
-    const sortAndDisplayQuestions = (questionsToSort, viewType) => {
-        let sortedQuestions = [...questionsToSort];
-        switch (viewType) {
-            case 'newest':
-                sortedQuestions.sort((a, b) => new Date(b.ask_date_time) - new Date(a.ask_date_time));
-                break;
-            case 'active':
-                // Sorting based on the latest activity
-                sortedQuestions.sort((a, b) => {
-                    const lastAnswerA = a.last_answered_time ? new Date(a.last_answered_time) : new Date(0);
-                    const lastAnswerB = b.last_answered_time ? new Date(b.last_answered_time) : new Date(0);
-                    return lastAnswerB - lastAnswerA;
-                });
-                break;
-            case 'unanswered':
-                // Filtering out questions with no answers
-                sortedQuestions = sortedQuestions.filter(q => q.answers.length === 0);
-                break;
-            default:
-            // No default action needed
+    // Function to handle pagination
+    const handlePagination = (direction) => {
+        if (direction === 'next') {
+            setCurrentPage(prev => (prev < totalPages ? prev + 1 : prev));
+        } else if (direction === 'prev') {
+            setCurrentPage(prev => (prev > 1 ? prev - 1 : prev));
         }
-
-        setDisplayedQuestions(sortedQuestions);
-        setTotalQuestions(sortedQuestions.length);
-        setNoQuestionsFound(sortedQuestions.length === 0);
     };
-
-    // Function to render a message when no unanswered questions are found
-    const renderNoUnansweredQuestionsMessage = () => (
-        <div className="no-questions-message">
-            <h2>No Unanswered Questions Yet</h2>
-            <p>Looks like all questions have been answered. Why not ask a new question and get the conversation started?</p>
-            <button onClick={() => navigate('/ask')} className="askQuestionButton">Ask a Question</button>
-        </div>
-    );
 
     // Function to format the date and time of questions
     const formatDate = (askDateTime) => {
@@ -98,66 +84,89 @@ const HomePageComponent = ({ query }) => {
         }).format(askDate).replace(/,/g, '');
     };
 
-    // Render function for the home page
-    return (
-        <div className="main-content" id="homeDiv">
-            {/* Section displaying total questions and ask question button */}
-            <div className='main-top'>
-                <h1>All Questions</h1>
-                <p>{totalQuestions} questions</p>
-                <button onClick={() => navigate('/ask')} className='mainDivAskButton'>Ask a Question</button>
-            </div>
-
-            {/* Buttons to change the view type of questions */}
-            <div className="buttons-top">
-                <div className='button-container'>
-                    {/* Buttons for Newest, Active, Unanswered view types */}
-                    <button onClick={() => setViewType('newest')} className={`buttonDeco ${viewType === 'newest' ? 'active' : ''}`}>Newest</button>
-                    <button onClick={() => setViewType('active')} className={`buttonDeco ${viewType === 'active' ? 'active' : ''}`}>Active</button>
-                    <button onClick={() => setViewType('unanswered')} className={`buttonDeco ${viewType === 'unanswered' ? 'active' : ''}`}>Unanswered</button>
-                </div>
-            </div>
-
-            {/* Container for displaying questions */}
-            <div className="questionContainer">
-                {noQuestionsFound ? (
-                    viewType === 'unanswered' ? renderNoUnansweredQuestionsMessage() : <p>No questions found.</p>
+    
+// Render function for the home page
+return (
+    <div className="main-content" id="homeDiv">
+        {/* Section displaying total questions and ask question button */}
+        <div className='main-top'>
+            <h1>All Questions</h1>
+            <p>{totalQuestions} questions</p>
+            {/* Conditionally render the button based on isAuthenticated */}
+            {isAuthenticated ? (
+                    <button onClick={() => navigate('/ask')} className='mainDivAskButton'>Ask a Question</button>
                 ) : (
-                    displayedQuestions.map((question) => (
-                        // Rendering each question with title, stats, and tags
-                        <div key={question.qid} className="question-entry">
-                            {/* Question statistics like answers count and views */}
-                            <div className="postStats">
-                                <p>{question.answers.length} answers</p>
-                                <p>{question.views || 0} views</p>
-                            </div>
-                            {/* Question title and navigation */}
-                            <h2 className="postTitle">
-                                <a href="#/" onClick={(e) => {
-                                    e.preventDefault();
-                                    navigate(`/questions/${question.qid}`);
-                                }}>
-                                    {question.title}
-                                </a>
-                            </h2>
-                            {/* Question metadata like author and ask date */}
-                            <div className="lastActivity">
-                                <p>
-                                    {question.asked_by} asked {formatDate(question.ask_date_time)}
-                                </p>
-                            </div>
-                            {/* Displaying tags associated with the question */}
-                            <div className="tags">
-                                {question.tags.map((tag, index) => (
-                                    <button key={index} className="tagButton">{tag.name}</button>
-                                ))}
-                            </div>
-                        </div>
-                    ))
+                    <button disabled className='mainDivAskButton'>Ask a Question</button>
                 )}
+        </div>
+
+        {/* Buttons to change the view type of questions */}
+        <div className="buttons-top">
+            <div className='button-container'>
+                {/* Buttons for Newest, Active, Unanswered view types */}
+                <button onClick={() => setViewType('newest')} className={`buttonDeco ${viewType === 'newest' ? 'active' : ''}`}>Newest</button>
+                <button onClick={() => setViewType('active')} className={`buttonDeco ${viewType === 'active' ? 'active' : ''}`}>Active</button>
+                <button onClick={() => setViewType('unanswered')} className={`buttonDeco ${viewType === 'unanswered' ? 'active' : ''}`}>Unanswered</button>
             </div>
         </div>
-    );
+
+        {/* Pagination Controls */}
+        <div className="pagination-controls">
+            <button onClick={() => handlePagination('prev')} disabled={currentPage === 1}>Prev</button>
+            <button onClick={() => handlePagination('next')} disabled={currentPage === totalPages}>Next</button>
+        </div>
+
+        {/* Container for displaying questions */}
+        <div className="questionContainer">
+            {noQuestionsFound ? (
+                <p>No questions found.</p>
+            ) : (
+                questions.map((question) => (
+                    <div key={question.qid} className="question-entry">
+                        {/* Question statistics like answers count and views */}
+                        <div className="postStats">
+                            <p>{question.answers.length} answers</p>
+                            <p>{question.views || 0} views</p>
+                            {/*}
+                            
+                            <div className="voting-buttons">
+                                    <button onClick={() => handleVote(question.qid, 'upvote')}>Upvote</button>
+                                    <p>Upvotes: {question.upvotes}</p>
+                                    <button onClick={() => handleVote(question.qid, 'downvote')}>Downvote</button>
+                                    <p>Downvotes: {question.downvotes}</p>
+                            </div>
+                */}
+                        </div>
+                        {/* Question title and navigation */}
+                        <h2 className="postTitle">
+                            <a href="#/" onClick={(e) => {
+                                e.preventDefault();
+                                navigate(`/questions/${question.qid}`);
+                            }}>
+                                {question.title}
+                            </a>
+                        </h2>
+                        {/* Display the summary */}
+                        <p className="questionSummary">{question.summary}</p>
+                        {/* Question metadata like author and ask date */}
+                        <div className="lastActivity">
+                            <p>
+                                {question.asked_by} asked {formatDate(question.ask_date_time)}
+                            </p>
+                        </div>
+                        {/* Displaying tags associated with the question */}
+                        <div className="tags">
+                            {question.tags.map((tag, index) => (
+                                <button key={index} className="tagButton">{tag.name}</button>
+                            ))}
+                        </div>
+                    </div>
+                ))
+            )}
+        </div>
+    </div>
+);
+
 };
 
 //Define prop types

@@ -17,7 +17,7 @@ export default function LoginPageComponent() {
         e.preventDefault();
         try {
             // Replace with backend API endpoint for login
-            await axios.post('http://localhost:8000/api/users/login', credentials);
+            await axios.post('http://localhost:8000/api/users/login', credentials, { withCredentials: true });
             alert('Login successful');
             navigate('/home'); // Redirect to home page on successful login
         } catch (error) {
