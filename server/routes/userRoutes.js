@@ -1,3 +1,4 @@
+const {authenticateUser} = require('../middleware/helper');
 const express = require('express');
 const router = express.Router();
 const User = require('../models/users');
@@ -130,10 +131,6 @@ router.get('/profile', authenticateUser, async (req, res) => {
     }
 });
 
-
-
-
-module.exports = router;
 
 
 

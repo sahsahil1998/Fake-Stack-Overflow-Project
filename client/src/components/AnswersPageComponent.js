@@ -11,20 +11,33 @@ const AnswersPageComponent = () => {
     const { qid } = useParams();
     const navigate = useNavigate();
     const [question, setQuestion] = useState(null);
+    const [user, setUser] = useState(null);
     const [error, setError] = useState('');
 
     useEffect(() => {
         const fetchQuestionData = async () => {
             try {
-                const response = await axios.get(`http://localhost:8000/questions/${qid}`);
-                setQuestion(response.data);
+                const questionResponse = await axios.get(`http://localhost:8000/questions/${qid}`);
+                setQuestion(questionResponse.data);
                 await axios.put(`http://localhost:8000/questions/increaseviewcount/${qid}`);
             } catch (error) {
                 setError('Error loading question data. Please try again later.');
             }
         };
 
+        const fetchUserData = async () => {
+            try {
+                const userResponse = await axios.get('http://localhost:8000/api/users/check-session', { withCredentials: true });
+                if (userResponse.data.isLoggedIn) {
+                    setUser(userResponse.data.user);
+                }
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+            }
+        };
+
         fetchQuestionData();
+        fetchUserData();
     }, [qid]);
 
     // Helper function to format date and time
@@ -94,7 +107,7 @@ const AnswersPageComponent = () => {
             {/* Comments for the Question */}
             <div className="comments-section">
                 <h4>Comments on Question:</h4>
-                <CommentsComponent parentId={qid} type="question" />
+                <CommentsComponent parentId={qid} type="question" user={user}/>
             </div>
     
             <h3>Answers:</h3>
@@ -108,7 +121,7 @@ const AnswersPageComponent = () => {
                             {/* Comments for each Answer */}
                             <div className="comments-section">
                                 <h4>Comments on Answer:</h4>
-                                <CommentsComponent parentId={answer.aid} type="answer" />
+                                <CommentsComponent parentId={answer.aid} type="answer" user={user} />
                             </div>
     
                             <hr style={{ borderTop: "1px dotted #000" }} />
