@@ -22,6 +22,7 @@ const HomePageComponent = ({ query }) => {
         // Fetch user session status on component mount
         axios.get('http://localhost:8000/api/users/check-session', { withCredentials: true })
             .then(response => {
+                console.log(response.data.user)
                 setIsAuthenticated(response.data.isLoggedIn);
             })
             .catch(error => console.error('Error checking user session:', error));

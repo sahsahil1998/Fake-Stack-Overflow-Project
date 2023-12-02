@@ -13,6 +13,7 @@ import QuestionTagsPage from './QuestionsTagsPage.js';
 import RegistrationFormComponent from './RegistrationFormComponent.js';
 import LoginPageComponent from './LoginPageComponent.js';
 import MainLayout from './MainLayout.js';
+import UserProfile from './UserProfile.js';
 
 const FakeStackOverflow = () => {
   return (
@@ -36,6 +37,7 @@ const FakeStackOverflow = () => {
             <Route path="/ask" element={<AskQuestionComponent />} />
             <Route path="/search" element={<SearchResultsComponent />} /> 
             <Route path="/tags/:tid" element={<QuestionTagsPage />} />
+            <Route path="/userprofile" element={<UserProfile />} />
           </Route>
         </Routes>
       </div>
