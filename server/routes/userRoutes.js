@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/users');
 const bcrypt = require('bcrypt');
+const { authenticateUser } = require('../middleware/helper');
 
 // Function to validate email format
 const validateEmail = (email) => {
@@ -9,8 +10,21 @@ const validateEmail = (email) => {
     return re.test(email);
 };
 
+
+router.get('/', async (req, res) => {
+    try {
+      const users = await User.find({}, { passwordHash: 0 }); // Exclude passwordHash from the result
+      res.json(users);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      res.status(500).json({ message: 'Error fetching users' });
+    }
+  });
+  
+
 // User registration route
 router.post('/register', async (req, res) => {
+    console.log("in here")
     try {
         const { username, email, password } = req.body;
 
@@ -135,6 +149,3 @@ router.get('/profile', authenticateUser, async (req, res) => {
 
 module.exports = router;
 
-
-
-module.exports = router;
