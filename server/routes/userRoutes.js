@@ -103,5 +103,38 @@ router.get('/logout', (req, res) => {
 });
 
 
+// User profile route
+router.get('/profile', authenticateUser, async (req, res) => {
+    try {
+        if (!req.session.user || !req.session.user.id) {
+            return res.status(401).send({ message: 'Unauthorized' });
+        }
+
+        const userId = req.session.user.id;
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).send({ message: 'User not found' });
+        }
+
+        // Return user profile information (excluding sensitive data like passwordHash)
+        res.send({
+            id: user._id,
+            username: user.username,
+            email: user.email,
+            reputationPoints: user.reputationPoints // Include any other profile information
+        });
+    } catch (error) {
+        console.error('User profile error:', error);
+        res.status(500).send({ message: 'Error fetching user profile' });
+    }
+});
+
+
+
+
+module.exports = router;
+
+
 
 module.exports = router;
