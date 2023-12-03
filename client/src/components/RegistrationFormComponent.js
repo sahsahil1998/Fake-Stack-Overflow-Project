@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import '../stylesheets/registrationPage.css';
+
 
 export default function RegistrationFormComponent() {
     const [formData, setFormData] = useState({
@@ -51,7 +53,7 @@ export default function RegistrationFormComponent() {
     };
 
     return (
-        <div>
+        <div className='registration-container'>
             <form onSubmit={handleSubmit}>
                 <input 
                     type="text" 

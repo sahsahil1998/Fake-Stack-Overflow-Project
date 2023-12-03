@@ -1,6 +1,9 @@
+// LoginPageComponent.js
+
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import '../stylesheets/loginPage.css'; // Import the stylesheet for styling
 
 export default function LoginPageComponent() {
     const [credentials, setCredentials] = useState({
@@ -26,7 +29,7 @@ export default function LoginPageComponent() {
     };
 
     return (
-        <div>
+        <div className="login-container">
             <h2>Login</h2>
             <form onSubmit={handleSubmit}>
                 <input 

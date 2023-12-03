@@ -2,6 +2,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import ProfileLogo from './ProfileLogo';
 
 // Importing stylesheet for the header component
 import '../stylesheets/header.css';
@@ -46,6 +47,8 @@ const HeaderComponent = () => {
                 onKeyDown={handleSearch}
                 style={{ marginLeft: '250px', width: '230px', lineHeight: '1px', height: '25px' }}
             />
+             {/* Profile logo */}
+             <ProfileLogo />
             <button onClick={handleLogout}>Logout</button>
         </div>
     );
