@@ -148,6 +148,8 @@ router.put("/increaseviewcount/:qid", async (req, res) => {
     }
 });
 
+
+//Might need to create a create tags function in middleware to send less http requests
 // POST a new question
 router.post('/', async (req, res) => {
     try {

@@ -29,12 +29,20 @@ router.get('/:tagId/questions', async (req, res) => {
         if (!tag) {
             return res.status(404).json({ message: 'Tag not found' });
         }
-        const questions = await Question.find({ tags: tag._id }).populate('tags').populate('answers');
+        const questions = await Question.find({ tags: tag._id })
+            .populate('tags')
+            .populate('asked_by', 'username') // Populate 'asked_by' with 'username'
+            .populate('answers')
+            .sort({ ask_date_time: -1 }) // Sorting questions by newest first
+            .exec();
+
         res.json({ tag: tag, questions: questions });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 });
+
+
 
 // Route to POST a new tag
 router.post('/', async (req, res) => {
