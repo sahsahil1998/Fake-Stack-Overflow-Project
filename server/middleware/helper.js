@@ -4,7 +4,9 @@ const User = require('../models/users');
 const bcrypt = require('bcrypt');
 
 const authenticateUser = (req, res, next) => {
-    if (!req.session.user || !req.session.user.id) {
+    console.log(req.session.user);
+    console.log("hitting here n middeS")
+    if (!req.session.user && !req.session.user) {
         return res.status(401).send({ message: 'Unauthorized' });
     }
     next();

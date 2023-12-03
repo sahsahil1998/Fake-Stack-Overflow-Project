@@ -22,13 +22,18 @@ const HomePageComponent = ({ query }) => {
         // Fetch user session status on component mount
         axios.get('http://localhost:8000/api/users/check-session', { withCredentials: true })
             .then(response => {
+                console.log(response.data.user)
                 setIsAuthenticated(response.data.isLoggedIn);
+                console.log(response.data.isLoggedIn);
+                // console.log(isAuthenticated);
+
             })
             .catch(error => console.error('Error checking user session:', error));
     }, []);
 
     // Reset currentPage to 1 when viewType changes
     useEffect(() => {
+        console.log("here",isAuthenticated);
         setCurrentPage(1);
     }, [viewType]);
     

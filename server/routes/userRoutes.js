@@ -2,7 +2,10 @@ const {authenticateUser} = require('../middleware/helper');
 const express = require('express');
 const router = express.Router();
 const User = require('../models/users');
+const Question = require('../models/questions');
+const Answer = require('../models/answers');
 const bcrypt = require('bcrypt');
+const { authenticateUser } = require('../middleware/helper');
 
 // Function to validate email format
 const validateEmail = (email) => {
@@ -10,8 +13,21 @@ const validateEmail = (email) => {
     return re.test(email);
 };
 
+
+router.get('/', async (req, res) => {
+    try {
+      const users = await User.find({}, { passwordHash: 0 }); // Exclude passwordHash from the result
+      res.json(users);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      res.status(500).json({ message: 'Error fetching users' });
+    }
+  });
+  
+
 // User registration route
 router.post('/register', async (req, res) => {
+    console.log("in here")
     try {
         const { username, email, password } = req.body;
 
@@ -106,13 +122,14 @@ router.get('/logout', (req, res) => {
 
 // User profile route
 router.get('/profile', authenticateUser, async (req, res) => {
+    console.log("hitting here")
+    console.log(req.session.user.id);
     try {
-        if (!req.session.user || !req.session.user.id) {
+        if (!req.session && !req.session.user.username) {
             return res.status(401).send({ message: 'Unauthorized' });
         }
-
-        const userId = req.session.user.id;
-        const user = await User.findById(userId);
+        const user = await User.findById(req.session.user.id);
+        console.log(user);
 
         if (!user) {
             return res.status(404).send({ message: 'User not found' });
@@ -133,5 +150,45 @@ router.get('/profile', authenticateUser, async (req, res) => {
 
 
 
+router.get('/questions', authenticateUser, async (req, res) => {
+    try {
+      if (!req.session.user || !req.session.user.username) {
+        return res.status(401).send({ message: 'Unauthorized' });
+      }
+  
+      const username = req.session.user.username;
+  
+      // Find questions by the username
+      const questions = await Question.find({ asked_by: username });
+  
+      res.json(questions);
+    } catch (error) {
+      console.error('Error fetching user questions:', error);
+      res.status(500).json({ message: 'Error fetching user questions' });
+    }
+  });
+
+
+  router.get('/answers', authenticateUser, async (req, res) => {
+    try {
+        console.log(req.session.user.username)
+      if (!req.session.user || !req.session.user.username) {
+        return res.status(401).send({ message: 'Unauthorized' });
+      }
+  
+      const username = req.session.user.username;
+  
+      // Find answers by the username
+      const answers = await Answer.find({ answered_by: username });
+  
+      res.json(answers);
+    } catch (error) {
+      console.error('Error fetching user answers:', error);
+      res.status(500).json({ message: 'Error fetching user answers' });
+    }
+  });
+
+
 
 module.exports = router;
+
