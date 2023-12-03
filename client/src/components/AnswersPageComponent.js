@@ -13,6 +13,20 @@ const AnswersPageComponent = () => {
     const [question, setQuestion] = useState(null);
     const [user, setUser] = useState(null);
     const [error, setError] = useState('');
+    const [isAuthenticated, setIsAuthenticated] = useState(false); // Added state to track authentication
+
+    useEffect(() => {
+        // Fetch user session status on component mount
+        axios.get('http://localhost:8000/api/users/check-session', { withCredentials: true })
+            .then(response => {
+                console.log(response.data.user)
+                setIsAuthenticated(response.data.isLoggedIn);
+                console.log(response.data.isLoggedIn);
+                // console.log(isAuthenticated);
+
+            })
+            .catch(error => console.error('Error checking user session:', error));
+    }, []);
 
     useEffect(() => {
         const fetchQuestionData = async () => {
@@ -95,7 +109,7 @@ const AnswersPageComponent = () => {
                 <div>{renderTextWithHyperlinks(question.text)}</div>
                 <span>{question.views} views</span>
                 <div className="questionMetadata">
-                    {question.asked_by} asked {formatDate(question.ask_date_time)}
+                    {question.asked_by ? `${question.asked_by.username} asked ${formatDate(question.ask_date_time)}` : 'Unknown user'}
                 </div>
                 <div className="questionTags">
                     {question.tags.map(tag => (
@@ -116,7 +130,9 @@ const AnswersPageComponent = () => {
                     question.answers.map(answer => (
                         <div key={answer.aid} className="answer-container">
                             <div className="answerText">{renderTextWithHyperlinks(answer.text)}</div>
-                            <div className="answerAuthor">{answer.ans_by} answered {formatDate(answer.ans_date_time)}</div>
+                            <div className="answerAuthor">
+                                {answer.ans_by ? `${answer.ans_by.username} answered ${formatDate(answer.ans_date_time)}` : 'Unknown user'}
+                            </div>
                             
                             {/* Comments for each Answer */}
                             <div className="comments-section">
@@ -131,7 +147,12 @@ const AnswersPageComponent = () => {
                     <div>No answers yet. Be the first to answer!</div>
                 )}
             </div>
-            <button onClick={() => navigate(`/questions/${qid}/answer`)}>Answer Question</button>
+            {isAuthenticated ?(
+                <button onClick={() => navigate(`/questions/${qid}/answer`)} className = 'answers-section-button'>Answer Question</button>
+            ) : (
+                <button disabled className = 'answers-section-button'>Answer Question</button> 
+            )}
+            
         </div>
     );
 };
