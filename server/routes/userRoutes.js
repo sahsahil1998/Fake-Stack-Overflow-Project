@@ -5,7 +5,6 @@ const User = require('../models/users');
 const Question = require('../models/questions');
 const Answer = require('../models/answers');
 const bcrypt = require('bcrypt');
-const { authenticateUser } = require('../middleware/helper');
 
 // Function to validate email format
 const validateEmail = (email) => {
@@ -96,6 +95,7 @@ router.post('/login', async (req, res) => {
 });
 
 router.get('/check-session', (req, res) => {
+    console.log(req.session.user)
     if (req.session && req.session.user) {
         // User is logged in
         res.json({ isLoggedIn: true, user: req.session.user });

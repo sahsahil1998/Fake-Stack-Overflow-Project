@@ -1,20 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const Answer = require('../models/answers'); // Import your Question model
+const Answer = require('../models/answers');
+const Question = require('../models/questions'); // Ensure you import the Question model
 
-// GET all questions
+// GET all answers with populated user details
 router.get('/', async (req, res) => {
     try {
-
-        const answers = await Answer.find();
-        console.log(answers)
+        const answers = await Answer.find().populate('ans_by', 'username');
         res.json(answers);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 });
-
-
 
 // POST a new answer
 router.post('/', async (req, res) => {

@@ -12,6 +12,7 @@ const AskQuestionComponent = () => {
     const [text, setText] = useState("");
     const [tags, setTags] = useState("");
     const [errors, setErrors] = useState({});
+    const [isLoading, setIsLoading] = useState(false);
     const [user, setUser] = useState(null); // State to store logged-in user info
 
 
@@ -21,42 +22,45 @@ const AskQuestionComponent = () => {
     useEffect(() => {
         axios.get('http://localhost:8000/api/users/check-session', { withCredentials: true })
             .then(response => {
+                console.log("Session check response:", response.data); // Log to check the response
                 if (response.data.isLoggedIn) {
                     setUser(response.data.user);
                 } else {
-                    navigate('/login'); // Redirect to login if not authenticated
+                    navigate('/login');
                 }
             })
             .catch(() => {
-                navigate('/login'); // Redirect on error or if not authenticated
+                navigate('/login');
             });
     }, [navigate]);
 
     // Function to handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
-
         if (!user) {
-            navigate('/login'); // Redirect to login if user is not available
+            navigate('/login');
             return;
         }
-        const validationErrors = validateInputs(title, text, tags);
 
-        // Checking for validation errors before making the API call
+        const validationErrors = validateInputs(title, text, tags);
+        setErrors(validationErrors);
+
         if (Object.keys(validationErrors).length === 0) {
+            setIsLoading(true);
             try {
                 const tagArray = tags.split(/\s+/).filter(tag => tag.trim() !== "");
-                const postData = { title, text, tags: tagArray, askedBy: user.username };
-
-                // Making a POST request to the server
+                const postData = { title, text, tags: tagArray, askedBy: user.id };
                 await axios.post('http://localhost:8000/questions', postData);
-                navigate('/home'); // Redirecting to the homepage on successful post
+                navigate('/home');
             } catch (error) {
-                console.error('Error posting question:', error);
-                // Optionally handle the error by updating the state
+                if (error.response && error.response.data) {
+                    setErrors(prevErrors => ({ ...prevErrors, server: error.response.data.message }));
+                } else {
+                    console.error('Error posting question:', error);
+                }
+            } finally {
+                setIsLoading(false);
             }
-        } else {
-            setErrors(validationErrors);
         }
     };
 
@@ -127,7 +131,10 @@ const AskQuestionComponent = () => {
                 />
                 {errors.tags && <div className="error-message">{errors.tags}</div>}
             </div>
-            <button type="submit" className="submitQuestionButton">Post Question</button>
+            {errors.server && <div className="error-message">{errors.server}</div>}
+            <button type="submit" className="submitQuestionButton" disabled={isLoading}>
+                {isLoading ? 'Posting...' : 'Post Question'}
+            </button>
         </form>
     );
 };

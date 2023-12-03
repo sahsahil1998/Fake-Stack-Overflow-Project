@@ -3,6 +3,7 @@ const router = express.Router();
 const Question = require('../models/questions');
 const Tag = require('../models/tags');
 const Answer = require('../models/answers');
+const User = require('../models/users')
 
 router.get('/', async (req, res) => {
     const page = parseInt(req.query.page) || 1;
@@ -34,6 +35,7 @@ router.get('/', async (req, res) => {
         // Fetch the questions based on the page, limit, and filter criteria
         const questions = await Question.find(filterCriteria)
             .populate('tags')
+            .populate('asked_by', 'username')
             .populate('answers')
             .sort(sortCriteria)
             .limit(limit)
@@ -126,7 +128,7 @@ router.get('/search', async (req, res) => {
 // GET a specific question by qid
 router.get("/:qid", async (req, res) => {
     try {
-        const question = await Question.findOne({ qid: req.params.qid }).populate('tags').populate('answers');
+        const question = await Question.findOne({ qid: req.params.qid }).populate('tags').populate('asked_by', 'username').populate('answers');
         if (!question) {
             return res.status(404).json({ message: 'Question not found' });
         }
@@ -146,16 +148,30 @@ router.put("/increaseviewcount/:qid", async (req, res) => {
     }
 });
 
+
+//Might need to create a create tags function in middleware to send less http requests
 // POST a new question
 router.post('/', async (req, res) => {
     try {
         const { title, text, tags, askedBy } = req.body;
 
+        const user = await User.findById(askedBy);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
         const tagIds = await Promise.all(tags.map(async (tagName) => {
             let tag = await Tag.findOne({ name: tagName.toLowerCase() });
             if (!tag) {
-                tag = new Tag({ name: tagName.toLowerCase() });
-                await tag.save();
+                // Check if user has enough reputation to add a new tag
+                if (user.reputationPoints >= 50) {
+                    // Create tag via the tag creation route
+                    // This is a simplified representation; you might need to use axios or another HTTP client to make this request
+                    const response = await axios.post('/tags', { name: tagName.toLowerCase(), userId: askedBy });
+                    tag = response.data;
+                } else {
+                    throw new Error('Insufficient reputation to add new tags');
+                }
             }
             return tag._id;
         }));
@@ -175,6 +191,7 @@ router.post('/', async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 });
+
 
 // POST a new answer to a specific question
 router.post('/:qid/answers', async (req, res) => {

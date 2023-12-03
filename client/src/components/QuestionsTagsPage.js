@@ -85,10 +85,10 @@ export default function QuestionTagsPage() {
                         <p>{question.text}</p>
                         {/* Question metadata */}
                         <footer>
-                            <span>Asked by: {question.asked_by}</span>
+                            <span>Asked by: {question.asked_by && question.asked_by.username}</span>
                             <span> | {question.answers.length} answers</span>
                             <span> | {question.views} views</span>
-                            <span> | Asked on: {formatDate(question.ask_date_time)}</span>
+                            <span> | Asked: {formatDate(question.ask_date_time)}</span>
                         </footer>
                     </article>
                 )) : <p>No questions found for this tag.</p>}

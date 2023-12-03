@@ -22,14 +22,16 @@ export default function TagsPageComponent() {
         setIsLoading(true);
         fetchTags()
             .then(data => {
-                setTags(data); // Setting the tags data
-                setIsLoading(false); // Updating the loading state
+                setTags(data);
             })
             .catch(err => {
-                setError(err); // Handling errors
-                setIsLoading(false); // Updating the loading state
+                setError(err.message || 'Error loading tags');
+            })
+            .finally(() => {
+                setIsLoading(false);
             });
-    }, []); // Empty dependency array to run only once on mount
+    }, []);
+    
 
     // Function to handle 'Ask a Question' button click
     const handleAskQuestionClick = () => {
