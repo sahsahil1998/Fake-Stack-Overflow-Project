@@ -13,7 +13,7 @@ function SearchResultsComponent() {
 
     // Render function for the search results page
     return (
-        <div>
+        <div >
             {/* Displaying the search query */}
             <h2>{`Search Results for '${query}'`}</h2>
             {/* Reusing HomePageComponent to display search results

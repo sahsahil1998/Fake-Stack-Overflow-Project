@@ -65,6 +65,6 @@
   .side-bar-dotted-line {
     border-left: 2px dotted #000;
     height: 100%;
-    margin-left: 50px;
+    margin-left: 0px;
     padding: 50px 20px;
 }
