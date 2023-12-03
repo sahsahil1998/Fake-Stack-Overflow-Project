@@ -156,7 +156,8 @@ return (
                         {/* Question metadata like author and ask date */}
                         <div className="lastActivity">
                             <p>
-                                {question.asked_by} asked {formatDate(question.ask_date_time)}
+                            <p>{question.asked_by && question.asked_by.username} asked {formatDate(question.ask_date_time)}</p>
+
                             </p>
                         </div>
                         {/* Displaying tags associated with the question */}

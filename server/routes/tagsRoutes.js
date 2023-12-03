@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Tag = require('../models/tags');
 const Question = require('../models/questions');
+const User = require('../models/users')
 
 // Route to GET all tags along with their associated question counts
 router.get('/', async (req, res) => {
@@ -37,8 +38,15 @@ router.get('/:tagId/questions', async (req, res) => {
 
 // Route to POST a new tag
 router.post('/', async (req, res) => {
-    const { name } = req.body;
+    const { name, userId } = req.body;
+
     try {
+        // Retrieve user based on userId
+        const user = await User.findById(userId);
+        if (!user || user.reputationPoints < 50) {
+            return res.status(403).json({ message: 'Insufficient reputation to add new tags' });
+        }
+
         const newTag = new Tag({ name });
         await newTag.save();
         res.status(201).json(newTag);
@@ -46,5 +54,6 @@ router.post('/', async (req, res) => {
         res.status(400).json({ message: err.message });
     }
 });
+
 
 module.exports = router;
