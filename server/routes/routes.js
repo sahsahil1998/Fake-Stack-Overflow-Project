@@ -128,15 +128,27 @@ router.get('/search', async (req, res) => {
 // GET a specific question by qid
 router.get("/:qid", async (req, res) => {
     try {
-        const question = await Question.findOne({ qid: req.params.qid }).populate('tags').populate('asked_by', 'username').populate('answers');
+        const question = await Question.findOne({ qid: req.params.qid })
+            .populate('tags')
+            .populate('asked_by', 'username') // Populating the user who asked the question
+            .populate({ 
+                path: 'answers',
+                populate: {
+                    path: 'ans_by',
+                    select: 'username' // Populating the user who answered the question
+                }
+            });
+        
         if (!question) {
             return res.status(404).json({ message: 'Question not found' });
         }
+
         res.json(question);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 });
+
 
 // Increment view count
 router.put("/increaseviewcount/:qid", async (req, res) => {
