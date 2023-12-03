@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
 const User = require('./models/users'); // Update the path as necessary
 const Tag = require('./models/tags');
 const Answer = require('./models/answers');
@@ -9,6 +10,21 @@ mongoose.connect(mongoDB, { useNewUrlParser: true, useUnifiedTopology: true });
 mongoose.Promise = global.Promise;
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+
+
+const saltRounds = 10; // Number of salt rounds for bcrypt
+
+const hashPassword = async (password) => {
+  const salt = await bcrypt.genSalt(saltRounds);
+  const hashedPassword = await bcrypt.hash(password, salt);
+  return hashedPassword;
+};
+
+const createUser = async (name, email, password) => {
+  const hashedPassword = await hashPassword(password);
+  const user = await userCreate(name, email, hashedPassword);
+  return user;
+};
 
 async function userCreate(username, email, passwordHash) {
     const user = new User({ username, email, passwordHash });
@@ -32,13 +48,13 @@ async function questionCreate(title, text, tags, answers, asked_by, ask_date_tim
 
 async function populate() {
     // Creating Users
-    const user1 = await userCreate('Joji John', 'joji@example.com', 'hash1');
-    const user2 = await userCreate('saltyPeter', 'peter@example.com', 'hash2');
-    const user3 = await userCreate('hamkalo', 'hamkalo@example.com', 'hash3');
-    const user4 = await userCreate('azad', 'azad@example.com', 'hash4');
-    const user5 = await userCreate('alia', 'alia@example.com', 'hash5');
-    const user6 = await userCreate('sana', 'sana@example.com', 'hash6');
-    const user7 = await userCreate('abaya', 'abaya@example.com', 'hash7');
+    const user1 = await createUser('Joji John', 'joji@example.com', 'hash1');
+    const user2 = await createUser('saltyPeter', 'peter@example.com', 'hash2');
+    const user3 = await createUser('hamkalo', 'hamkalo@example.com', 'hash3');
+    const user4 = await createUser('azad', 'azad@example.com', 'hash4');
+    const user5 = await createUser('alia', 'alia@example.com', 'hash5');
+    const user6 = await createUser('sana', 'sana@example.com', 'hash6');
+    const user7 = await createUser('abaya', 'abaya@example.com', 'hash7');
     // More users...
 
     // Creating Tags

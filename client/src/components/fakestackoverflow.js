@@ -20,7 +20,7 @@ import UserAnswerComponent from './UserAnswerQuestionComponent.js';
 const FakeStackOverflow = () => {
   return (
     <HashRouter>
-      <div className='container'>
+      <div>
         <Routes>
           {/* Set WelcomePageComponent as the default route */}
           <Route path="/" element={<WelcomePageComponent />} />
