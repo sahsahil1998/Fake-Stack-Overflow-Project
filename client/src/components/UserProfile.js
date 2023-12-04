@@ -46,9 +46,9 @@ const UserProfile = () => {
       <div className='main-content'>
         <h3>Menu</h3>
         <ul>
-          <li><Link to="/user/questions">View All Questions</Link></li>
-          <li><Link to="/user/tags">View All Tags</Link></li>
-          <li><Link to="/user/answers">View All Answers</Link></li>
+          <li><Link to="/userprofile/questions">View All Questions</Link></li>
+          <li><Link to="/userprofile/tags">View All Tags</Link></li>
+          <li><Link to="/userprofile/answers">View All Answers</Link></li>
         </ul>
       </div>
     </div>
