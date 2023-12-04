@@ -26,7 +26,7 @@ router.get('/', async (req, res) => {
 
 // User registration route
 router.post('/register', async (req, res) => {
-    console.log("in here")
+    // console.log("in here")
     try {
         const { username, email, password } = req.body;
 
@@ -65,18 +65,18 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
-        console.log("Login attempt for user:", username);
+        // console.log("Login attempt for user:", username);
 
         const user = await User.findOne({ username });
-        console.log("User found:", user);
+        // console.log("User found:", user);
 
         if (!user) {
-            console.log("User not found for username:", username);
+            // console.log("User not found for username:", username);
             return res.status(401).send({ message: 'Invalid username or password' });
         }
 
         const isMatch = await bcrypt.compare(password, user.passwordHash);
-        console.log("Password match:", isMatch);
+        // console.log("Password match:", isMatch);
 
         if (isMatch) {
             req.session.user = { id: user._id, username: user.username };
@@ -95,7 +95,7 @@ router.post('/login', async (req, res) => {
 });
 
 router.get('/check-session', (req, res) => {
-    console.log(req.session.user)
+    // console.log(req.session.user)
     if (req.session && req.session.user) {
         // User is logged in
         res.json({ isLoggedIn: true, user: req.session.user });
@@ -109,7 +109,7 @@ router.get('/check-session', (req, res) => {
 
 // User logout route
 router.get('/logout', (req, res) => {
-    console.log("Logout route hit");
+    // console.log("Logout route hit");
     req.session.destroy(err => {
         if (err) {
             console.error('Logout error:', err);
@@ -122,14 +122,14 @@ router.get('/logout', (req, res) => {
 
 // User profile route
 router.get('/profile', authenticateUser, async (req, res) => {
-    console.log("hitting here")
-    console.log(req.session.user.id);
+    // console.log("hitting here")
+    // console.log(req.session.user.id);
     try {
         if (!req.session && !req.session.user.username) {
             return res.status(401).send({ message: 'Unauthorized' });
         }
         const user = await User.findById(req.session.user.id);
-        console.log(user);
+        // console.log(user);
 
         if (!user) {
             return res.status(404).send({ message: 'User not found' });
@@ -149,37 +149,45 @@ router.get('/profile', authenticateUser, async (req, res) => {
 });
 
 
-
 router.get('/questions', authenticateUser, async (req, res) => {
     try {
-      if (!req.session.user || !req.session.user.username) {
-        return res.status(401).send({ message: 'Unauthorized' });
-      }
-  
-      const username = req.session.user.username;
-  
-      // Find questions by the username
-      const questions = await Question.find({ asked_by: username });
-  
-      res.json(questions);
+        if (!req.session.user || !req.session.user.username) {
+            return res.status(401).send({ message: 'Unauthorized' });
+        }
+
+        // Find user by username
+        const user = await User.findOne({ username: req.session.user.username });
+        // console.log(user.username);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Use user's _id to filter questions
+        const userQuestions = await Question.find({ asked_by: user._id });
+        // console.log(userQuestions);
+
+        res.json(userQuestions);
     } catch (error) {
-      console.error('Error fetching user questions:', error);
-      res.status(500).json({ message: 'Error fetching user questions' });
+        console.error('Error fetching user questions:', error);
+        res.status(500).json({ message: 'Error fetching user questions' });
     }
-  });
+});
+
 
 
   router.get('/answers', authenticateUser, async (req, res) => {
     try {
-        console.log(req.session.user.username)
+        // console.log(req.session.user.username)
       if (!req.session.user || !req.session.user.username) {
         return res.status(401).send({ message: 'Unauthorized' });
       }
   
-      const username = req.session.user.username;
+    //   const username = req.session.user.username;
   
       // Find answers by the username
-      const answers = await Answer.find({ answered_by: username });
+      const answers = await Answer.find({ answered_by: req.session.user._id });
+    //   console.log
   
       res.json(answers);
     } catch (error) {
