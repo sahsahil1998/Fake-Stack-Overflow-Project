@@ -246,6 +246,34 @@ router.post('/:qid/answers', async (req, res) => {
     }
 });
 
+router.post('/:qid/:voteType', async (req, res) => {
+
+     
+    try {
+        const { qid, voteType } = req.params; 
+        const updateField = voteType === 'upvote' ? 'upvotes' : 'downvotes';
+        const updatedQuestion = await Question.findOne(
+            { qid: qid }
+        );
+
+        console.log(qid);
+        console.log(updatedQuestion);
+        console.log(updateField);
+
+        // Update the upvotes or downvotes field
+        updatedQuestion[updateField] += 1;
+
+        // Save the updated answer document
+        await updatedQuestion.save();
+
+
+     
+        res.status(200).json(updatedQuestion);    
+    
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
 
 
 // Repost a question with updated title and text

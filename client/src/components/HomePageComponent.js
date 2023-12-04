@@ -88,7 +88,38 @@ const HomePageComponent = ({ query }) => {
         }).format(askDate).replace(/,/g, '');
     };
 
-    
+
+    const handleVote = async ( qid, voteType) => {
+        try {
+            // Make an API call to handle upvote/downvote
+            const response = await axios.post(`http://localhost:8000/questions/${qid}/${voteType}`,null, { withCredentials: true });
+            console.log(response);
+            updateQuestionVotes(qid, response.data);
+            console.log('back');
+            await axios.post(`http://localhost:8000/api/users/${voteType}`, null,{ withCredentials: true })
+        } catch (error) {
+            console.error('Error handling vote:', error);
+        }
+    };
+    const updateQuestionVotes = (qid, updatedVotes) => {
+        setQuestions(prevQuestions => {
+            return prevQuestions.map(question => {
+                if (question.qid === qid) {
+                    // Update the question with new vote counts
+                    return { ...question, upvotes: updatedVotes.upvotes, downvotes: updatedVotes.downvotes };
+                }
+                return question;
+            });
+        });
+    };
+    // const handleUpvote = async (response) => {
+    //     return response.data.upvotes;
+        
+    // };
+
+    // const handleDownvote = (response) => {
+        
+    // };
 // Render function for the home page
 return (
     <div className="main-content" id="homeDiv">
@@ -131,15 +162,21 @@ return (
                         <div className="postStats">
                             <p>{question.answers.length} answers</p>
                             <p>{question.views || 0} views</p>
-                            {/*}
                             
-                            <div className="voting-buttons">
-                                    <button onClick={() => handleVote(question.qid, 'upvote')}>Upvote</button>
-                                    <p>Upvotes: {question.upvotes}</p>
-                                    <button onClick={() => handleVote(question.qid, 'downvote')}>Downvote</button>
-                                    <p>Downvotes: {question.downvotes}</p>
-                            </div>
-                */}
+                            {isAuthenticated && (
+                                    <div className="vote-buttons">
+                                        {/* <button onClick={() => handleVote(question.qid, 'upvote')}>Upvote {handleUpvote(any)} </button>
+                                        <button onClick={() => handleVote(question.qid, 'downvote')}>Downvote </button>
+                                        {handleUpvote(question.qid)} */}
+                                        <button onClick={() => handleVote(question.qid, 'upvote')}>
+                        Upvote {question.upvotes} 
+                    </button>
+                    <button onClick={() => handleVote(question.qid, 'downvote')}>
+                        Downvote {question.downvotes}
+                    </button>
+                                    </div>
+                                )}
+                
                         </div>
                         {/* Question title and navigation */}
                         <h2 className="postTitle">
