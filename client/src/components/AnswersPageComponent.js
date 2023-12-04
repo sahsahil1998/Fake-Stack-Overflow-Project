@@ -147,13 +147,35 @@ const AnswersPageComponent = () => {
     const handleVote = async (aid, voteType) => {
         try {
             // Make an API call to handle upvote/downvote
-            await axios.post(`http://localhost:8000/answers/${aid}/${voteType}`,null, { withCredentials: true });
+            const response = await axios.post(`http://localhost:8000/answers/${aid}/${voteType}`,null, { withCredentials: true });
             console.log('back');
+            updateAnswerVotes(aid, response.data);
             await axios.post(`http://localhost:8000/api/users/${voteType}`, null,{ withCredentials: true })
         } catch (error) {
             console.error('Error handling vote:', error);
         }
     };
+
+
+    const updateAnswerVotes = (aid, updatedVotes) => {
+        setQuestion(prevQuestion => {
+            if (!prevQuestion) {
+                return null;
+            }
+
+            // Update the answer votes in the question state
+            const updatedAnswers = prevQuestion.answers.map(answer => {
+                if (answer.aid === aid) {
+                    return { ...answer, upvotes: updatedVotes.upvotes, downvotes: updatedVotes.downvotes };
+                }
+                return answer;
+            });
+
+            // Update the question state with the updated answers
+            return { ...prevQuestion, answers: updatedAnswers };
+        });
+    };
+    
     
 
     // Rendering the component UI
@@ -197,8 +219,8 @@ const AnswersPageComponent = () => {
 
                                 {isAuthenticated && (
                                     <div className="vote-buttons">
-                                        <button onClick={() => handleVote(answer.aid, 'upvote')}>Upvote</button>
-                                        <button onClick={() => handleVote(answer.aid, 'downvote')}>Downvote</button>
+                                        <button onClick={() => handleVote(answer.aid, 'upvote')}>Upvote {answer.upvotes}</button>
+                                        <button onClick={() => handleVote(answer.aid, 'downvote')}>Downvote {answer.downvotes}</button>
                                     </div>
                                 )}
 
