@@ -112,14 +112,7 @@ const HomePageComponent = ({ query }) => {
             });
         });
     };
-    // const handleUpvote = async (response) => {
-    //     return response.data.upvotes;
-        
-    // };
-
-    // const handleDownvote = (response) => {
-        
-    // };
+   
 // Render function for the home page
 return (
     <div className="main-content" id="homeDiv">
