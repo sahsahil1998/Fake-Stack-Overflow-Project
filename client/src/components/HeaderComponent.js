@@ -1,5 +1,5 @@
 // Importing React and necessary hooks
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import ProfileLogo from './ProfileLogo';
@@ -8,7 +8,7 @@ import ProfileLogo from './ProfileLogo';
 import '../stylesheets/header.css';
 
 const HeaderComponent = () => {
-    // Hook to enable programmatic navigation
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const navigate = useNavigate();
 
     // Handler for search functionality
@@ -21,6 +21,17 @@ const HeaderComponent = () => {
             navigate(`/search?query=${e.target.value}`);
         }
     };
+
+    // Check user session status on component mount
+    useEffect(() => {
+        axios.get('http://localhost:8000/api/users/check-session', { withCredentials: true })
+            .then(response => {
+                setIsAuthenticated(response.data.isLoggedIn);
+            })
+            .catch(error => {
+                console.error('Error checking user session:', error);
+            });
+    }, []);
 
     const handleLogout = async () => {
         try {
@@ -35,10 +46,8 @@ const HeaderComponent = () => {
     // Render function for the header component
     return (
         <div className="header">
-            {/* Application title */}
             <h1 id="titleApplication">Fake Stack Overflow</h1>
-            
-            {/* Search bar input field */}
+
             <input 
                 className="searchBar"
                 type="text" 
@@ -47,9 +56,18 @@ const HeaderComponent = () => {
                 onKeyDown={handleSearch}
                 style={{ marginLeft: '250px', width: '230px', lineHeight: '1px', height: '25px' }}
             />
-             {/* Profile logo */}
-             <ProfileLogo />
-            <button onClick={handleLogout}>Logout</button>
+
+            <ProfileLogo />
+
+            {/* Conditional rendering based on isAuthenticated state */}
+            {isAuthenticated ? (
+                <button onClick={handleLogout}>Logout</button>
+            ) : (
+                <>
+                    <button onClick={() => navigate('/register')}>Register</button>
+                    <button onClick={() => navigate('/login')}>Login</button>
+                </>
+            )}
         </div>
     );
 };
