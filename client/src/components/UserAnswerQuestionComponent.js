@@ -20,10 +20,11 @@ const AnswersComponent = () => {
         fetchAnswers();
     }, []);
 
-    const handleAnswerClick = (answerId) => {
-        // Navigate to the edit/delete answer form, passing the answerId
-        navigate(`/edit-answer/${answerId}`);
+    const handleAnswerClick = (aid) => {
+        navigate(`/userprofile/answers/edit/${aid}`);
     };
+    
+
 
     return (
         <div>

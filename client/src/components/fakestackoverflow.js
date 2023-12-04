@@ -44,7 +44,7 @@ const FakeStackOverflow = () => {
             <Route path="/userprofile" element={<UserProfile />} />
             <Route path="/userprofile/questions" element={<UserQuestionComponent />} />
             <Route path="/userprofile/answers" element={<UserAnswerComponent />} />
-            <Route path="/answers/edit/:answerId" element={<EditAnswerComponent />} />
+            <Route path="/userprofile/answers/edit/:aid" element={<EditAnswerComponent />} />
           </Route>
         </Routes>
       </div>

@@ -1,7 +1,8 @@
+const { authenticateUser } = require('../middleware/helper');
 const express = require('express');
 const router = express.Router();
 const Answer = require('../models/answers');
-const Question = require('../models/questions'); // Ensure you import the Question model
+const Question = require('../models/questions');
 
 // GET all answers with populated user details
 router.get('/', async (req, res) => {
@@ -68,5 +69,71 @@ router.post('/:aid/:voteType', async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 });
+
+// Route to GET a specific answer by ID for editing
+router.get('/:aid', authenticateUser, async (req, res) => {
+    console.log("Fetching answer with ID:", req.params.aid);
+    try {
+        // Check if the user is authenticated
+        if (!req.session.user || !req.session.user.username) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
+        const answer = await Answer.findById(req.params.aid);
+        if (!answer) {
+            return res.status(404).json({ message: 'Answer not found' });
+        }
+
+        res.json(answer);
+    } catch (error) {
+        console.error('Error fetching answer:', error);
+        res.status(500).json({ message: 'Error fetching answer' });
+    }
+});
+
+// Route to UPDATE a specific answer
+router.put('/:aid', authenticateUser, async (req, res) => {
+    try {
+        // Check if the user is authenticated
+        if (!req.session.user || !req.session.user.username) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
+        const updatedAnswer = await Answer.findOneAndUpdate(
+            { aid: req.params.aid },
+            { text: req.body.text },
+            { new: true }
+        );
+        if (!updatedAnswer) {
+            return res.status(404).json({ message: 'Answer not found' });
+        }
+
+        res.json(updatedAnswer);
+    } catch (error) {
+        console.error('Error updating answer:', error);
+        res.status(500).json({ message: 'Error updating answer' });
+    }
+});
+
+// Route to DELETE a specific answer
+router.delete('/:aid', authenticateUser, async (req, res) => {
+    try {
+        // Check if the user is authenticated
+        if (!req.session.user || !req.session.user.username) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
+        const deletedAnswer = await Answer.findOneAndRemove({ aid: req.params.aid });
+        if (!deletedAnswer) {
+            return res.status(404).json({ message: 'Answer not found' });
+        }
+
+        res.json({ message: 'Answer deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting answer:', error);
+        res.status(500).json({ message: 'Error deleting answer' });
+    }
+});
+
 
 module.exports = router;

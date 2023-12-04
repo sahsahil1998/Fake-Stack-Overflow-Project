@@ -5,45 +5,74 @@ import axios from 'axios';
 const EditAnswerComponent = () => {
     const [answer, setAnswer] = useState({ text: '' });
     const [isLoading, setIsLoading] = useState(false);
-    //const [errors, setErrors] = useState({});
-    const { answerId } = useParams(); 
+    const [isAuthenticated, setIsAuthenticated] = useState(false); // Add state for authentication
+    const { aid } = useParams();
     const navigate = useNavigate();
 
+    // Authentication check logic
     useEffect(() => {
-        // Fetch the existing answer
+        axios.get('http://localhost:8000/api/users/check-session', { withCredentials: true })
+            .then(response => {
+                setIsAuthenticated(response.data.isLoggedIn);
+            })
+            .catch(error => {
+                console.error('Error checking user session:', error);
+            });
+    }, []);
+
+    useEffect(() => {
         const fetchAnswer = async () => {
+            console.log(`Fetching answer from: http://localhost:8000/answers/${aid}`);
             setIsLoading(true);
             try {
-                const response = await axios.get(`http://localhost:8000/answers/${answerId}`);
+                // Update the URL to match the new route in answerRoutes.js
+                const response = await axios.get(`http://localhost:8000/answers/${aid}`);
                 setAnswer(response.data);
             } catch (error) {
                 console.error('Error fetching answer:', error);
+                console.log(`Error details: ${error.message}`);
             }
             setIsLoading(false);
         };
         fetchAnswer();
-    }, [answerId]);
+    }, [aid]);
+
 
     const handleUpdate = async (e) => {
         e.preventDefault();
+        
+        // Check if the user is authenticated
+        if (!isAuthenticated) {
+            alert('You are not authenticated. Please login or register to edit answers.');
+            navigate('/login'); // Redirect to login page
+            return;
+        }
+        
         setIsLoading(true);
         try {
-            await axios.put(`http://localhost:8000/answers/${answerId}`, answer);
+            await axios.put(`http://localhost:8000/answers/${aid}`, { text: answer.text });
             alert('Answer updated successfully');
-            navigate('/some-redirect-path');
+            navigate('/userprofile/answers');
         } catch (error) {
             console.error('Error updating answer:', error);
         }
         setIsLoading(false);
     };
-
+    
     const handleDelete = async () => {
         if (window.confirm('Are you sure you want to delete this answer?')) {
+            // Check if the user is authenticated
+            if (!isAuthenticated) {
+                alert('You are not authenticated. Please login or register to delete answers.');
+                navigate('/login'); // Redirect to login page
+                return;
+            }
+            
             setIsLoading(true);
             try {
-                await axios.delete(`http://localhost:8000/answers/${answerId}`);
+                await axios.delete(`http://localhost:8000/answers/${aid}`);
                 alert('Answer deleted successfully');
-                navigate('/some-redirect-path');
+                navigate('/userprofile/answers');
             } catch (error) {
                 console.error('Error deleting answer:', error);
             }
@@ -58,11 +87,15 @@ const EditAnswerComponent = () => {
     return (
         <div>
             <h2>Edit Answer</h2>
-            <form onSubmit={handleUpdate}>
-                <textarea value={answer.text} onChange={handleChange} />
-                <button type="submit" disabled={isLoading}>Update Answer</button>
-                <button type="button" onClick={handleDelete} disabled={isLoading}>Delete Answer</button>
-            </form>
+            {isLoading ? (
+                <p>Loading...</p>
+            ) : (
+                <form onSubmit={handleUpdate}>
+                    <textarea value={answer.text} onChange={handleChange} />
+                    <button type="submit" disabled={isLoading}>Update Answer</button>
+                    <button type="button" onClick={handleDelete} disabled={isLoading}>Delete Answer</button>
+                </form>
+            )}
         </div>
     );
 };
