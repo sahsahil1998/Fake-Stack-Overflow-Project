@@ -35,10 +35,11 @@ const NewAnswerComponent = () => {
 
         if (Object.keys(validationErrors).length === 0 && user) {
             setIsLoading(true);
+
             try {
                 await axios.post(`http://localhost:8000/questions/${qid}/answers`, {
                     text: answerText,
-                    ans_by: user._id // Using the user's ID from the session
+                    username: user.username // Using the user's ID from the session
                 });
                 navigate(`/questions/${qid}`);
             } catch (error) {
