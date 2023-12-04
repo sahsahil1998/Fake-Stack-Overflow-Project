@@ -26,7 +26,7 @@ router.get('/', async (req, res) => {
 
 // User registration route
 router.post('/register', async (req, res) => {
-    // console.log("in here")
+    console.log("in here")
     try {
         const { username, email, password } = req.body;
 
@@ -65,13 +65,13 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
-        // console.log("Login attempt for user:", username);
+        console.log("Login attempt for user:", username);
 
         const user = await User.findOne({ username });
-        // console.log("User found:", user);
+        console.log("User found:", user);
 
         if (!user) {
-            // console.log("User not found for username:", username);
+            console.log("User not found for username:", username);
             return res.status(401).send({ message: 'Invalid username or password' });
         }
 
@@ -95,7 +95,7 @@ router.post('/login', async (req, res) => {
 });
 
 router.get('/check-session', (req, res) => {
-    // console.log(req.session.user)
+    console.log(req.session.user)
     if (req.session && req.session.user) {
         // User is logged in
         res.json({ isLoggedIn: true, user: req.session.user });
@@ -109,7 +109,7 @@ router.get('/check-session', (req, res) => {
 
 // User logout route
 router.get('/logout', (req, res) => {
-    // console.log("Logout route hit");
+    console.log("Logout route hit");
     req.session.destroy(err => {
         if (err) {
             console.error('Logout error:', err);
@@ -122,8 +122,8 @@ router.get('/logout', (req, res) => {
 
 // User profile route
 router.get('/profile', authenticateUser, async (req, res) => {
-    // console.log("hitting here")
-    // console.log(req.session.user.id);
+    console.log("hitting here")
+    console.log(req.session.user.id);
     try {
         if (!req.session && !req.session.user.username) {
             return res.status(401).send({ message: 'Unauthorized' });
@@ -178,12 +178,10 @@ router.get('/questions', authenticateUser, async (req, res) => {
 
   router.get('/answers', authenticateUser, async (req, res) => {
     try {
-        // console.log(req.session.user.username)
+        console.log(req.session.user.username)
       if (!req.session.user || !req.session.user.username) {
         return res.status(401).send({ message: 'Unauthorized' });
       }
-  
-    //   const username = req.session.user.username;
   
       // Find answers by the username
       const answers = await Answer.find({ answered_by: req.session.user._id });

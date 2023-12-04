@@ -150,6 +150,7 @@ const AnswersPageComponent = () => {
             {question ? (
                 <>
                     <div id="answersHeader">
+                        <span>{question.views+1} Views </span>
                         <span>{question.answers.length} answers</span>
                         <h2>{question.title}</h2>
                         <button onClick={() => navigate('/ask')} id="askQuestionButton" className="mainDivAskButton">Ask a Question</button>
@@ -166,6 +167,7 @@ const AnswersPageComponent = () => {
                                 <span key={tag.tid} className="tagButton">{tag.name}</span>
                             ))}
                         </div>
+                        
                     </div>
     
                     {/* Comments for the Question */}
@@ -174,6 +176,7 @@ const AnswersPageComponent = () => {
                         <CommentsComponent parentId={qid} type="question" user={user}/>
                     </div>
     
+
                     <h3>Answers:</h3>
                     <div className="answers-section">
                         {currentAnswers.length > 0 ? currentAnswers.map(answer => (
