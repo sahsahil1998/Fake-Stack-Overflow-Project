@@ -144,12 +144,25 @@ const AnswersPageComponent = () => {
         );
     };
 
+    const handleVote = async (aid, voteType) => {
+        try {
+            // Make an API call to handle upvote/downvote
+            await axios.post(`http://localhost:8000/answers/${aid}/${voteType}`,null, { withCredentials: true });
+            console.log('back');
+            await axios.post(`http://localhost:8000/api/users/${voteType}`, null,{ withCredentials: true })
+        } catch (error) {
+            console.error('Error handling vote:', error);
+        }
+    };
+    
+
     // Rendering the component UI
     return (
         <div className="answers-page">
             {question ? (
                 <>
                     <div id="answersHeader">
+                        <span>{question.views+1} Views </span>
                         <span>{question.answers.length} answers</span>
                         <h2>{question.title}</h2>
                         <button onClick={() => navigate('/ask')} id="askQuestionButton" className="mainDivAskButton">Ask a Question</button>
@@ -166,6 +179,7 @@ const AnswersPageComponent = () => {
                                 <span key={tag.tid} className="tagButton">{tag.name}</span>
                             ))}
                         </div>
+                        
                     </div>
     
                     {/* Comments for the Question */}
@@ -174,10 +188,21 @@ const AnswersPageComponent = () => {
                         <CommentsComponent parentId={qid} type="question" user={user}/>
                     </div>
     
+
                     <h3>Answers:</h3>
                     <div className="answers-section">
                         {currentAnswers.length > 0 ? currentAnswers.map(answer => (
                             <div key={answer.aid} className="answer-container">
+
+
+                                {isAuthenticated && (
+                                    <div className="vote-buttons">
+                                        <button onClick={() => handleVote(answer.aid, 'upvote')}>Upvote</button>
+                                        <button onClick={() => handleVote(answer.aid, 'downvote')}>Downvote</button>
+                                    </div>
+                                )}
+
+
                                 <div className="answerText">{renderTextWithHyperlinks(answer.text)}</div>
                                 <div className="answerAuthor">
                                     {answer.ans_by ? `${answer.ans_by.username} answered ${formatDate(answer.ans_date_time)}` : 'Unknown user'}

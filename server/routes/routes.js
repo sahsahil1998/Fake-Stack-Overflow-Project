@@ -205,36 +205,47 @@ router.post('/', async (req, res) => {
 });
 
 
+// Assuming you have a User model for accessing user information
+
+
 // POST a new answer to a specific question
 router.post('/:qid/answers', async (req, res) => {
     const { qid } = req.params;
-    const { text, ans_by } = req.body;
+    const { text, username } = req.body;
 
-    const foundQuestion = await Question.findOne({ qid: qid });
-    
-    if (foundQuestion) {
-        const newAnswer = new Answer({ 
-            question: foundQuestion._id,
-            text: text,
-            ans_by: ans_by,
-            ans_date_time: new Date()
-        });
+    try {
+        // Find the user object based on the provided username
+        const user = await User.findOne({ username: username });
 
-        try {
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const foundQuestion = await Question.findOne({ qid: qid });
+
+        if (foundQuestion) {
+            const newAnswer = new Answer({ 
+                text: text,
+                ans_by: user, // Use the user object here
+                ans_date_time: new Date()
+            });
+
             await newAnswer.save();
+
             await Question.findByIdAndUpdate(
                 foundQuestion._id,
                 { $push: { answers: newAnswer._id }, $set: { last_answered_time: new Date() } }
             );
 
             res.status(201).json(newAnswer);
-        } catch (error) {
-            res.status(500).json({ message: error.message });
+        } else {
+            res.status(404).json({ message: "Question not found" });
         }
-    } else {
-        res.status(404).json({ message: "Question not found" });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
 });
+
 
 
 // Repost a question with updated title and text
@@ -274,10 +285,6 @@ router.post('/repost/:questionId', async (req, res) => {
         }
       );
       
-  
-    //   const savedQuestion = await newQuestion.save();
-  
-    //   res.json(savedQuestion);
     } catch (error) {
       console.error('Error reposting question:', error);
       res.status(500).json({ message: 'Error reposting question' });
