@@ -205,9 +205,6 @@ router.post('/', async (req, res) => {
 });
 
 
-// Assuming you have a User model for accessing user information
-
-
 // POST a new answer to a specific question
 router.post('/:qid/answers', async (req, res) => {
     const { qid } = req.params;

@@ -176,23 +176,29 @@ router.get('/questions', authenticateUser, async (req, res) => {
 
 
 
-  router.get('/answers', authenticateUser, async (req, res) => {
+router.get('/answers', authenticateUser, async (req, res) => {
     try {
-        console.log(req.session.user.username)
-      if (!req.session.user || !req.session.user.username) {
-        return res.status(401).send({ message: 'Unauthorized' });
-      }
-  
-      // Find answers by the username
-      const answers = await Answer.find({ answered_by: req.session.user._id });
-    //   console.log
-  
-      res.json(answers);
+        if (!req.session.user || !req.session.user.username) {
+            return res.status(401).send({ message: 'Unauthorized' });
+        }
+
+        // Find user by username
+        const user = await User.findOne({ username: req.session.user.username });
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Use user's _id to filter answers
+        const userAnswers = await Answer.find({ ans_by: user._id }).populate('question');
+
+        res.json(userAnswers);
     } catch (error) {
-      console.error('Error fetching user answers:', error);
-      res.status(500).json({ message: 'Error fetching user answers' });
+        console.error('Error fetching user answers:', error);
+        res.status(500).json({ message: 'Error fetching user answers' });
     }
-  });
+});
+
 
   router.post('/:voteType', async (req, res) => {
     console.log("in here");
