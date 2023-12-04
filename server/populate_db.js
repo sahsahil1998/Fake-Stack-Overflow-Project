@@ -65,11 +65,11 @@ async function populate() {
     // More tags...
 
     // Creating Answers
-    const a1 = await answerCreate('React Router is mostly a wrapper around the history library. history handles interaction with the browser\'s window.history for you with its browser and hash histories. It also provides a memory history which is useful for environments that don\'t have a global history. This is particularly useful in mobile app development (react-native) and unit testing with Node.', user3._id, new Date('2023-11-20T03:24:42'));
-    const a2 = await answerCreate('On my end, I like to have a single history object that I can carry even outside components. I like to have a single history.js file that I import on demand, and just manipulate it. You just have to change BrowserRouter to Router, and specify the history prop. This doesn\'t change anything for you, except that you have your own history object that you can manipulate as you want. You need to install history, the library used by react-router.', user4._id, new Date('2023-11-25T08:24:00'));
-    const a3 = await answerCreate('Consider using apply() instead; commit writes its data to persistent storage immediately, whereas apply will handle it in the background.', user7._id, new Date('2023-11-18T09:24:00'));
-    const a4 = await answerCreate('YourPreference yourPrefrence = YourPreference.getInstance(context); yourPreference.saveData(YOUR_KEY,YOUR_VALUE);', user5._id, new Date('2023-11-12T03:30:00'));
-    const a5 = await answerCreate('I just found all the above examples just too confusing, so I wrote my own. ', user6._id, new Date('2023-11-01T15:24:19'));
+    const a1 = await answerCreate('React Router is mostly a wrapper around the history library. history handles interaction with the browser\'s window.history for you with its browser and hash histories. It also provides a memory history which is useful for environments that don\'t have a global history. This is particularly useful in mobile app development (react-native) and unit testing with Node.', user3._id, new Date('2023-11-20T03:24:42'),0,0);
+    const a2 = await answerCreate('On my end, I like to have a single history object that I can carry even outside components. I like to have a single history.js file that I import on demand, and just manipulate it. You just have to change BrowserRouter to Router, and specify the history prop. This doesn\'t change anything for you, except that you have your own history object that you can manipulate as you want. You need to install history, the library used by react-router.', user4._id, new Date('2023-11-25T08:24:00'), 0,0);
+    const a3 = await answerCreate('Consider using apply() instead; commit writes its data to persistent storage immediately, whereas apply will handle it in the background.', user7._id, new Date('2023-11-18T09:24:00'),0,0);
+    const a4 = await answerCreate('YourPreference yourPrefrence = YourPreference.getInstance(context); yourPreference.saveData(YOUR_KEY,YOUR_VALUE);', user5._id, new Date('2023-11-12T03:30:00'),0,0);
+    const a5 = await answerCreate('I just found all the above examples just too confusing, so I wrote my own. ', user6._id, new Date('2023-11-01T15:24:19'),0,0);
     // More answers...
 
     // Creating Questions

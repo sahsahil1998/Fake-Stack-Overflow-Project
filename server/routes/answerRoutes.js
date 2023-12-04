@@ -41,4 +41,32 @@ router.post('/', async (req, res) => {
     }
 });
 
+
+router.post('/:aid/:voteType', async (req, res) => {
+    try {
+       ;
+        const { aid, voteType } = req.params; 
+        const updateField = voteType === 'upvote' ? 'upvotes' : 'downvotes';
+     
+
+        // Use Mongoose to update the answer document in the database
+        const updatedAnswer = await Answer.findOne(
+            { aid: aid }
+        );
+
+        // Update the upvotes or downvotes field
+        updatedAnswer[updateField] += 1;
+
+        // Save the updated answer document
+        await updatedAnswer.save();
+
+
+     
+        res.status(200).json(updatedAnswer);
+    } catch (err) {
+       
+        res.status(500).json({ message: err.message });
+    }
+});
+
 module.exports = router;

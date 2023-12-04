@@ -1,25 +1,22 @@
-// Importing Mongoose library and Schema
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-// Importing a custom schema for generating unique IDs
-const idSchema = require("./idSchema");
+const idSchema = require('./idSchema');
 
-// Defining the Answer schema
 const AnswerSchema = new Schema({
-    aid: { type: String, unique: true }, // Unique identifier for each answer
-    question: { type: Schema.Types.ObjectId, ref: 'Question' }, // Reference to the associated question document
-    text: String, // Text content of the answer
-    ans_date_time: Date, // Date and time when the answer was provided
-    ans_by: { type: Schema.Types.ObjectId, ref: 'User' }, // Link to User model
-    comments: [{ type: Schema.Types.ObjectId, ref: 'Comment' }] // Array of Comment references
+    aid: { type: String, unique: true },
+    question: { type: Schema.Types.ObjectId, ref: 'Question' },
+    text: String,
+    ans_date_time: Date,
+    ans_by: { type: Schema.Types.ObjectId, ref: 'User' },
+    comments: [{ type: Schema.Types.ObjectId, ref: 'Comment' }],
+    upvotes: { type: Number, default: 0 },    // Number of upvotes
+    downvotes: { type: Number, default: 0 },  // Number of downvotes
 });
 
-// Pre-save hook for AnswerSchema
 AnswerSchema.pre('save', async function (next) {
     const doc = this;
 
-    // Generating a unique ID for the answer if not already present
     if (!doc.aid) {
         try {
             const idSchemaCounter = await idSchema.findByIdAndUpdate(
@@ -27,29 +24,38 @@ AnswerSchema.pre('save', async function (next) {
                 { $inc: { sequence_value: 1 } },
                 { new: true, upsert: true }
             );
-            doc.aid = `a${idSchemaCounter.sequence_value}`; // Setting the unique aid
+            doc.aid = `a${idSchemaCounter.sequence_value}`;
         } catch (err) {
-            next(err); // Passing the error to the next middleware
+            next(err);
         }
     }
 
-    // Updating the 'last_answered_time' field of the associated question
-    if (this.isNew || this.isModified('text')) { // Triggered only if the answer is new or its text is modified
+    if (this.isNew || this.isModified('text')) {
         try {
             await mongoose.model('Question').findByIdAndUpdate(
-                doc.question, // ID of the associated question
-                { last_answered_time: new Date() } // Setting the current date and time
+                doc.question,
+                { last_answered_time: new Date() }
             );
         } catch (err) {
-            next(err); // Passing the error to the next middleware
+            next(err);
         }
     }
 
-    next(); // Proceeding to the next middleware
+    next();
 });
 
-// Creating the Answer model from the schema
+// Custom method to handle upvoting
+AnswerSchema.methods.upvote = async function () {
+    this.upvotes += 1;
+    await this.save();
+};
+
+// Custom method to handle downvoting
+AnswerSchema.methods.downvote = async function () {
+    this.downvotes += 1;
+    await this.save();
+};
+
 const Answer = mongoose.model('Answer', AnswerSchema);
 
-// Exporting the Answer model
 module.exports = Answer;

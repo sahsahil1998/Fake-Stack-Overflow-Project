@@ -194,6 +194,72 @@ router.get('/questions', authenticateUser, async (req, res) => {
     }
   });
 
+  router.post('/:voteType', async (req, res) => {
+    console.log("in here");
+    console.log(req.session.user);
+
+    try {
+        console.log("in here");
+        if (req.session && req.session.user) {
+            console.log("in here inside");
+            const username = req.session.user.username;
+            console.log(username);
+            const voteType = req.params.voteType;
+            console.log(voteType);
+
+            // Update reputation points based on voteType
+            let reputationPointsChange = 0;
+
+            if (voteType === 'upvote') {
+                console.log('upvote');
+                reputationPointsChange = 5;
+            } else if (voteType === 'downvote') {
+                console.log('downvote');
+                reputationPointsChange = -10;
+            }
+
+            // Assuming you have a User model
+            const user = await User.findOneAndUpdate(
+               { username:username},
+                { $inc: { reputationPoints: reputationPointsChange } },
+                { new: true } // To return the updated user
+            );
+
+
+            console.log("here ");
+            res.json({ message: 'Reputation points updated successfully', user });
+        }
+    } catch (error) {
+        console.log("in here error");
+        console.error('Error updating reputation points:', error);
+        res.status(500).json({ message: 'Error updating reputation points' });
+    }
+});
+
+
+
+router.get('/check-reputation', async (req, res) => {
+    try {
+        if (req.session && req.session.user) {
+            const username = req.session.user.username;
+
+            // Assuming you have a User model
+            const user = await User.find({username:username});
+
+            if (user && user.reputationPoints >= 50) {
+                res.json({ isLoggedIn: true, user: req.session.user, hasEnoughReputation: true });
+            } else {
+                res.json({ isLoggedIn: true, user: req.session.user, hasEnoughReputation: false });
+            }
+        } else {
+            // User is not logged in
+            res.json({ isLoggedIn: false });
+        }
+    } catch (error) {
+        console.error('Error checking reputation points:', error);
+        res.status(500).json({ message: 'Error checking reputation points' });
+    }
+});
 
 
 module.exports = router;
