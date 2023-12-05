@@ -1,3 +1,4 @@
+const { authenticateUser } = require('../middleware/helper');
 const express = require('express');
 const router = express.Router();
 const Tag = require('../models/tags');

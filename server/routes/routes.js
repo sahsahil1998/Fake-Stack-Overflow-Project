@@ -162,38 +162,38 @@ router.put("/increaseviewcount/:qid", async (req, res) => {
     }
 });
 
-
-//Might need to create a create tags function in middleware to send less http requests
 // POST a new question
 router.post('/', async (req, res) => {
     try {
         const { title, text, tags, askedBy } = req.body;
 
+        // Find the user who is posting the question
         const user = await User.findById(askedBy);
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        const tagIds = await Promise.all(tags.map(async (tagName) => {
+        // Handle tag processing
+        const processedTags = await Promise.all(tags.map(async tagName => {
             let tag = await Tag.findOne({ name: tagName.toLowerCase() });
+
             if (!tag) {
-                // Check if user has enough reputation to add a new tag
-                if (user.reputationPoints >= 50) {
-                    // Create tag via the tag creation route
-                    // This is a simplified representation; you might need to use axios or another HTTP client to make this request
-                    const response = await axios.post('/tags', { name: tagName.toLowerCase(), userId: askedBy });
-                    tag = response.data;
-                } else {
+                if (user.reputationPoints < 50) {
                     throw new Error('Insufficient reputation to add new tags');
                 }
+                // Create a new tag
+                tag = new Tag({ name: tagName.toLowerCase(), createdBy: askedBy });
+                await tag.save();
             }
+
             return tag._id;
         }));
 
-        const newQuestion = new Question({ 
+        // Create a new question
+        const newQuestion = new Question({
             title, 
             text, 
-            tags: tagIds, 
+            tags: processedTags, 
             asked_by: askedBy, 
             ask_date_time: new Date(),
             views: 0
@@ -201,10 +201,14 @@ router.post('/', async (req, res) => {
 
         await newQuestion.save();
         res.status(201).json(newQuestion);
+
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error('Error posting new question:', err);
+        res.status(500).json({ message: err.message || 'Internal Server Error' });
     }
 });
+
+module.exports = router;
 
 
 // POST a new answer to a specific question
