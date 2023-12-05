@@ -49,19 +49,66 @@ router.post('/', async (req, res) => {
     const { name, userId } = req.body;
 
     try {
-        // Retrieve user based on userId
         const user = await User.findById(userId);
         if (!user || user.reputationPoints < 50) {
             return res.status(403).json({ message: 'Insufficient reputation to add new tags' });
         }
 
-        const newTag = new Tag({ name });
+        const newTag = new Tag({ name, createdBy: user._id }); // Include createdBy
         await newTag.save();
         res.status(201).json(newTag);
     } catch (err) {
         res.status(400).json({ message: err.message });
     }
 });
+
+router.get('/user', authenticateUser, async (req, res) => {
+    try {
+        const userTags = await Tag.find({ createdBy: req.session.user.id });
+        res.json(userTags);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// Edit a user's tag
+router.put('/:tagId', authenticateUser, async (req, res) => {
+    try {
+        const { tagId } = req.params;
+        const { newName } = req.body;
+        const tag = await Tag.findOne({ tid: tagId, createdBy: req.session.user.id });
+
+        if (!tag) {
+            return res.status(404).json({ message: 'Tag not found or not owned by user' });
+        }
+
+        tag.name = newName;
+        await tag.save();
+        res.json({ message: 'Tag updated successfully', tag });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// Delete a user's tag
+router.delete('/:tagId', authenticateUser, async (req, res) => {
+    try {
+        const { tagId } = req.params;
+        const tag = await Tag.findOneAndDelete({ tid: tagId, createdBy: req.session.user.id });
+
+        if (!tag) {
+            return res.status(404).json({ message: 'Tag not found or not owned by user' });
+        }
+
+        // Additional logic needed to remove the tag from associated questions
+        
+
+        res.json({ message: 'Tag deleted successfully' });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
 
 
 module.exports = router;

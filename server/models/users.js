@@ -18,6 +18,9 @@ UserSchema.virtual('memberDays').get(function() {
     return daysDifference;
 });
 
+// Set the toJSON schema option to include virtuals
+UserSchema.set('toJSON', { virtuals: true });
+
 const User = mongoose.model('User', UserSchema);
 
 module.exports = User;

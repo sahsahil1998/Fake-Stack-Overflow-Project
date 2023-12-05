@@ -1,4 +1,3 @@
-// UserProfile.js
 
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
@@ -39,7 +38,7 @@ const UserProfile = () => {
       <h2 className='heading'>User Profile</h2>
      
       <div className='userDetails'>
-        <p>Member for {memberDays} days</p>
+        <p>Member for: {memberDays} days</p>
         <p>Reputation Points: {reputationPoints}</p>
       </div>
 

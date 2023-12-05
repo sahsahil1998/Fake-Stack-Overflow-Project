@@ -4,7 +4,8 @@ const idSchema = require("./idSchema");
 
 const TagSchema = new Schema({
     tid: { type: String, unique: true },
-    name: { type: String, required: true }
+    name: { type: String, required: true },
+    createdBy: { type: Schema.Types.ObjectId, ref: 'User' }
 });
 
 TagSchema.pre('save', async function (next) {

@@ -10,7 +10,7 @@ router.get('/question/:questionId', async (req, res) => {
 
     try {
         const comments = await Comment.find({ onQuestion: questionId })
-            .populate('commented_by', 'username') // Populating the 'commented_by' field with 'username' from User model
+            .populate('commented_by', 'username')
             .sort({ comment_date_time: -1 })
             .limit(limit)
             .skip((page - 1) * limit);
@@ -28,7 +28,7 @@ router.get('/answer/:answerId', async (req, res) => {
 
     try {
         const comments = await Comment.find({ onAnswer: answerId })
-            .populate('commented_by', 'username') // Populating the 'commented_by' field with 'username' from User model
+            .populate('commented_by', 'username')
             .sort({ comment_date_time: -1 })
             .limit(limit)
             .skip((page - 1) * limit);
