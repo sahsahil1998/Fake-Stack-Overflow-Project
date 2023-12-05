@@ -275,25 +275,26 @@ router.post('/:qid/:voteType', async (req, res) => {
 });
 
 
-// Repost a question with updated title and text
 router.post('/repost/:questionId', async (req, res) => {
-    const { questionId } = req.params; // Update this line
-    console.log(questionId);
+    console.log('Repost route hit for question ID:', req.params.questionId);
+    const { questionId } = req.params;
     try {
-      const originalQuestion = await Question.findOne({ qid: questionId }); // Update this line
-  
+      const originalQuestion = await Question.findOne({ qid: questionId });
+      console.log('Fetched question:', originalQuestion);
+
       if (!originalQuestion) {
-        console.log("in here");
         return res.status(404).json({ message: 'Question not found' });
       }
-      console.log("in here");
-      const { newTitle, newText } = req.body;
-    
-      console.log(req.data);
-      console.log(req.body);
 
-      // Create a new instance of the question with the updated content
-      const result = await Question.updateOne(
+      // Log the upvotes and downvotes
+      console.log('Upvotes:', originalQuestion.upvotes, 'Downvotes:', originalQuestion.downvotes);
+
+      const { newTitle, newText } = req.body;
+      const upvotes = originalQuestion.upvotes ?? 0;
+      const downvotes = originalQuestion.downvotes ?? 0;
+
+      // Update the question
+      await Question.updateOne(
         { qid: originalQuestion.qid },
         {
           $set: {
@@ -302,8 +303,8 @@ router.post('/repost/:questionId', async (req, res) => {
             tags: originalQuestion.tags,
             answers: originalQuestion.answers,
             comments: originalQuestion.comments,
-            upvotes: originalQuestion.upvotes,
-            downvotes: originalQuestion.downvotes,
+            upvotes: upvotes,
+            downvotes: downvotes,
             asked_by: originalQuestion.asked_by,
             views: originalQuestion.views,
             ask_date_time: originalQuestion.ask_date_time,
@@ -311,12 +312,14 @@ router.post('/repost/:questionId', async (req, res) => {
           },
         }
       );
-      
+
+      res.json({ message: 'Question reposted successfully' });
     } catch (error) {
       console.error('Error reposting question:', error);
       res.status(500).json({ message: 'Error reposting question' });
     }
-  });
+});
+
 
   // Delete a question and its associated answers and comments
   router.delete('/:questionId', async (req, res) => {

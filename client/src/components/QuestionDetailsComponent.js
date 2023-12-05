@@ -14,8 +14,8 @@ const QuestionDetailsComponent = () => {
       try {
         const response = await axios.get(`http://localhost:8000/questions/${qid}`);
         setQuestion(response.data);
-        setEditTitle(response.data.title); // Initialize with fetched data
-        setEditText(response.data.text); // Initialize with fetched data
+        setEditTitle(response.data.title);
+        setEditText(response.data.text); 
       } catch (error) {
         console.error('Error fetching question details:', error);
       }
@@ -55,7 +55,11 @@ const QuestionDetailsComponent = () => {
       <h2>Edit Question</h2>
       <div>
         <label>Title:</label>
-        <input type="text" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
+        <input 
+            type="text" 
+            value={editTitle} 
+            onChange={(e) => setEditTitle(e.target.value)} 
+        />
       </div>
       <div>
         <label>Text:</label>

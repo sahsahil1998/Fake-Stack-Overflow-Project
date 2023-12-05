@@ -9,13 +9,18 @@ const QuestionsComponent = () => {
     const fetchQuestions = async () => {
       try {
         const response = await axios.get(`http://localhost:8000/api/users/questions`, { withCredentials: true });
-        setQuestions(response.data);
-        console.log("State set with: ", response.data);
+        if (response.data && response.data.questions) {
+          setQuestions(response.data.questions);
+          console.log("Fetched questions: ", response.data.questions);
+        } else {
+          setQuestions([]);
+        }
       } catch (error) {
         console.error('Error fetching questions:', error);
+        setQuestions([]);
       }
     };
-
+  
     fetchQuestions();
   }, []);
 
