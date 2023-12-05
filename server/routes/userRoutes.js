@@ -213,6 +213,30 @@ router.get('/answers', authenticateUser, async (req, res) => {
     }
 });
 
+router.get('/tags', authenticateUser, async (req, res) => {
+    try {
+        if (!req.session.user || !req.session.user.username) {
+            return res.status(401).send({ message: 'Unauthorized' });
+        }
+
+        // Find user by username
+        const user = await User.findOne({ username: req.session.user.username });
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Fetch tags created by the user
+        const userTags = await Tag.find({ createdBy: user._id });
+
+        res.json(userTags);
+    } catch (error) {
+        console.error('Error fetching user tags:', error);
+        res.status(500).json({ message: 'Error fetching user tags' });
+    }
+});
+
+
 
   router.post('/:voteType', async (req, res) => {
     console.log("in here");

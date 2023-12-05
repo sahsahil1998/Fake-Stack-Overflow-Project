@@ -5,6 +5,8 @@ const session = require('express-session');
 const app = express();
 const port = 8000;
 const cors = require("cors");
+const axios = require('axios');
+
 
 // MongoDB connection
 mongoose.connect('mongodb://127.0.0.1:27017/fake_so', {
