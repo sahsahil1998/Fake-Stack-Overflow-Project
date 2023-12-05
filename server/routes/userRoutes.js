@@ -51,7 +51,7 @@ router.post('/register', async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const passwordHash = await bcrypt.hash(password, salt);
 
-        const user = new User({ username, email, passwordHash }); // Use passwordHash
+        const user = new User({ username, email, passwordHash });
         await user.save();
 
         res.status(201).send("User created successfully");
@@ -140,7 +140,8 @@ router.get('/profile', authenticateUser, async (req, res) => {
             id: user._id,
             username: user.username,
             email: user.email,
-            reputationPoints: user.reputationPoints // Include any other profile information
+            reputationPoints: user.reputationPoints,
+            memberDays: user.memberDays
         });
     } catch (error) {
         console.error('User profile error:', error);
@@ -157,22 +158,35 @@ router.get('/questions', authenticateUser, async (req, res) => {
 
         // Find user by username
         const user = await User.findOne({ username: req.session.user.username });
-        // console.log(user.username);
 
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Use user's _id to filter questions
-        const userQuestions = await Question.find({ asked_by: user._id });
-        // console.log(userQuestions);
+        const page = parseInt(req.query.page) || 1; // Current page number, default is 1
+        const limit = parseInt(req.query.limit) || 5; // Limit of questions per page, default is 5
+        const skip = (page - 1) * limit;
 
-        res.json(userQuestions);
+        // Use user's _id to filter questions and apply pagination and sorting
+        const userQuestions = await Question.find({ asked_by: user._id })
+            .sort({ createdAt: -1 }) // Sort by newest first
+            .skip(skip)
+            .limit(limit);
+
+        const totalQuestions = await Question.countDocuments({ asked_by: user._id });
+
+        res.json({
+            questions: userQuestions,
+            totalQuestions,
+            totalPages: Math.ceil(totalQuestions / limit),
+            currentPage: page
+        });
     } catch (error) {
         console.error('Error fetching user questions:', error);
         res.status(500).json({ message: 'Error fetching user questions' });
     }
 });
+
 
 
 

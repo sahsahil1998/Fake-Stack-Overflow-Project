@@ -4,6 +4,8 @@ const Question = require('../models/questions');
 const Tag = require('../models/tags');
 const Answer = require('../models/answers');
 const User = require('../models/users')
+const Comment = require('../models/comments');
+
 
 router.get('/', async (req, res) => {
     const page = parseInt(req.query.page) || 1;
@@ -315,6 +317,36 @@ router.post('/repost/:questionId', async (req, res) => {
       res.status(500).json({ message: 'Error reposting question' });
     }
   });
+
+  // Delete a question and its associated answers and comments
+  router.delete('/:questionId', async (req, res) => {
+    const { questionId } = req.params;
+
+    try {
+        // Find the question
+        const question = await Question.findOne({ qid: questionId });
+        if (!question) {
+            return res.status(404).json({ message: 'Question not found' });
+        }
+
+        // Delete all answers associated with the question
+        const answers = await Answer.find({ question: question._id });
+        const answerIds = answers.map(answer => answer._id);
+        await Answer.deleteMany({ question: question._id });
+
+        // Delete comments associated with the question and its answers
+        await Comment.deleteMany({ $or: [{ onQuestion: question.qid }, { onAnswer: { $in: answerIds } }] });
+
+        // Finally, delete the question
+        await Question.deleteOne({ _id: question._id });
+
+        res.status(200).json({ message: 'Question and associated data deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting question:', error);
+        res.status(500).json({ message: 'Error deleting question' });
+    }
+});
+
   
 
 module.exports = router;

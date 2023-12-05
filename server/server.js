@@ -24,10 +24,11 @@ app.use(cors({
 
 // Session configuration
 app.use(session({
-    secret: 'my_default_secret_key', // Default secret key for development/testing
+    secret: 'my_default_secret_key', // Default secret key
     resave: false,
     saveUninitialized: true,
-    cookie: { httpOnly: true, secure: false } // Set secure: true if using https
+    // Set secure: true if using https
+    cookie: { httpOnly: true, secure: false }
 }));
 
 // Use JSON middleware for parsing requests

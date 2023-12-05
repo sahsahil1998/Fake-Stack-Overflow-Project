@@ -17,6 +17,8 @@ import UserProfile from './UserProfile.js';
 import UserQuestionComponent from './UserQuestionComponent.js';
 import UserAnswerComponent from './UserAnswerQuestionComponent.js';
 import EditAnswerComponent from './EditAnswerComponent.js';
+import QuestionDetailsComponent from './QuestionDetailsComponent';
+
 
 
 const FakeStackOverflow = () => {
@@ -45,6 +47,7 @@ const FakeStackOverflow = () => {
             <Route path="/userprofile/questions" element={<UserQuestionComponent />} />
             <Route path="/userprofile/answers" element={<UserAnswerComponent />} />
             <Route path="/userprofile/answers/edit/:aid" element={<EditAnswerComponent />} />
+            <Route path="/questions/details/:qid" element={<QuestionDetailsComponent />} />
           </Route>
         </Routes>
       </div>

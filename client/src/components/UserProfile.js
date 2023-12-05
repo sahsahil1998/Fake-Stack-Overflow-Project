@@ -39,7 +39,7 @@ const UserProfile = () => {
       <h2 className='heading'>User Profile</h2>
      
       <div className='userDetails'>
-        <p>Member for {memberDays} days</p>
+        <p>Member for: {memberDays} days</p>
         <p>Reputation Points: {reputationPoints}</p>
       </div>
 
