@@ -32,7 +32,7 @@ const AnswersComponent = () => {
             <ul>
                 {answers.map((answer) => (
                     <li key={answer._id}>
-                        <button onClick={() => handleAnswerClick(answer._id)}>
+                        <button onClick={() => handleAnswerClick(answer.aid)}>
                             {answer.text.substring(0, 50)}...
                         </button>
                     </li>

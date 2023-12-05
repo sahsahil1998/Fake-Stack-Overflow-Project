@@ -73,13 +73,15 @@ router.post('/:aid/:voteType', async (req, res) => {
 // Route to GET a specific answer by ID for editing
 router.get('/:aid', authenticateUser, async (req, res) => {
     console.log("Fetching answer with ID:", req.params.aid);
+    console.log("in here entered");
     try {
         // Check if the user is authenticated
         if (!req.session.user || !req.session.user.username) {
+            console.log("in here not authenticated");
             return res.status(401).json({ message: 'Unauthorized' });
         }
 
-        const answer = await Answer.findById(req.params.aid);
+        const answer = await Answer.findOne({aid:req.params.aid});
         if (!answer) {
             return res.status(404).json({ message: 'Answer not found' });
         }
@@ -92,7 +94,7 @@ router.get('/:aid', authenticateUser, async (req, res) => {
 });
 
 // Route to UPDATE a specific answer
-router.put('/:aid', authenticateUser, async (req, res) => {
+router.put('/update/:aid', authenticateUser, async (req, res) => {
     try {
         // Check if the user is authenticated
         if (!req.session.user || !req.session.user.username) {
@@ -116,14 +118,15 @@ router.put('/:aid', authenticateUser, async (req, res) => {
 });
 
 // Route to DELETE a specific answer
-router.delete('/:aid', authenticateUser, async (req, res) => {
+// Route to DELETE a specific answer
+router.delete('/delete/:aid', authenticateUser, async (req, res) => {
     try {
         // Check if the user is authenticated
         if (!req.session.user || !req.session.user.username) {
             return res.status(401).json({ message: 'Unauthorized' });
         }
 
-        const deletedAnswer = await Answer.findOneAndRemove({ aid: req.params.aid });
+        const deletedAnswer = await Answer.findOneAndDelete({ aid: req.params.aid });
         if (!deletedAnswer) {
             return res.status(404).json({ message: 'Answer not found' });
         }
@@ -134,6 +137,7 @@ router.delete('/:aid', authenticateUser, async (req, res) => {
         res.status(500).json({ message: 'Error deleting answer' });
     }
 });
+
 
 
 module.exports = router;

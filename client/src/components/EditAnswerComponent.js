@@ -26,7 +26,9 @@ const EditAnswerComponent = () => {
             setIsLoading(true);
             try {
                 // Update the URL to match the new route in answerRoutes.js
-                const response = await axios.get(`http://localhost:8000/answers/${aid}`);
+                console.log("in here before get");
+                const response = await axios.get(`http://localhost:8000/answers/${aid}`, {withCredentials: true});
+                console.log("in here after get");
                 setAnswer(response.data);
             } catch (error) {
                 console.error('Error fetching answer:', error);
@@ -50,7 +52,7 @@ const EditAnswerComponent = () => {
         
         setIsLoading(true);
         try {
-            await axios.put(`http://localhost:8000/answers/${aid}`, { text: answer.text });
+            await axios.put(`http://localhost:8000/answers/update/${aid}`, { text: answer.text }, {withCredentials:true});
             alert('Answer updated successfully');
             navigate('/userprofile/answers');
         } catch (error) {
@@ -70,7 +72,7 @@ const EditAnswerComponent = () => {
             
             setIsLoading(true);
             try {
-                await axios.delete(`http://localhost:8000/answers/${aid}`);
+                await axios.delete(`http://localhost:8000/answers/delete/${aid}`, {withCredentials:true});
                 alert('Answer deleted successfully');
                 navigate('/userprofile/answers');
             } catch (error) {
