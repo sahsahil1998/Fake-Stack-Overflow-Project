@@ -26,9 +26,18 @@ const QuestionsComponent = () => {
 
   console.log("Rendering with questions: ", questions);
 
+  if (questions.length === 0) {
+    return (
+        <div>
+            <h2>Your Asked Questions:</h2>
+            <p>No questions asked yet!</p>
+        </div>
+    );
+}
+
   return (
     <div>
-      <h2>View All Questions</h2>
+      <h1>Your Asked Questions:</h1>
       {questions && questions.length > 0 ? (
         <ul>
           {questions.map((question) => (

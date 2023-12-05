@@ -5,70 +5,120 @@ const UserTagsComponent = () => {
     const [tags, setTags] = useState([]);
     const [editingTagId, setEditingTagId] = useState(null);
     const [newTagName, setNewTagName] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     useEffect(() => {
-        fetchTags();
+        // Authentication check
+        axios.get('http://localhost:8000/api/users/check-session', { withCredentials: true })
+            .then(response => {
+                setIsAuthenticated(response.data.isLoggedIn);
+                if (response.data.isLoggedIn) {
+                    fetchTags();
+                }
+            })
+            .catch(error => {
+                console.error('Error checking user session:', error);
+            });
     }, []);
 
     const fetchTags = async () => {
+        setIsLoading(true);
         try {
-            const response = await axios.get('http://localhost:8000/users/tags', { withCredentials: true });
+            const response = await axios.get('http://localhost:8000/api/users/tags', { withCredentials: true });
             setTags(response.data);
         } catch (error) {
             console.error('Error fetching tags:', error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
-    const handleEditTag = async (tagId) => {
+    const handleEditClick = (tag) => {
+        if (!isAuthenticated) {
+            alert('You are not authenticated. Please login to edit tags.');
+            return;
+        }
+        setEditingTagId(tag._id);
+        setNewTagName(tag.name);
+    };
+
+    const handleEditTag = async (tagTid) => {
         if (!newTagName.trim()) {
             alert('Tag name cannot be empty');
             return;
         }
-
+    
+        setIsLoading(true);
         try {
-            await axios.put(`http://localhost:8000/tags/${tagId}`, { newName: newTagName }, { withCredentials: true });
+            console.log('Sending Edit Request for Tag ID:', tagTid, 'with new name:', newTagName);
+            const response = await axios.put(`http://localhost:8000/tags/edit/${tagTid}`, { newName: newTagName }, { withCredentials: true });
+            console.log('Edit response:', response.data);
             alert('Tag updated successfully');
             setEditingTagId(null);
             fetchTags();
         } catch (error) {
             console.error('Error updating tag:', error);
             alert('Error updating tag');
+        } finally {
+            setIsLoading(false);
         }
     };
 
-    const handleDeleteTag = async (tagId) => {
-        if (window.confirm('Are you sure you want to delete this tag?')) {
-            try {
-                await axios.delete(`http://localhost:8000/tags/${tagId}`, { withCredentials: true });
-                alert('Tag deleted successfully');
-                fetchTags();
-            } catch (error) {
-                console.error('Error deleting tag:', error);
-                alert('Error deleting tag');
-            }
+    const handleDeleteTag = async (tagTid) => {
+        if (!isAuthenticated) {
+            alert('You are not authenticated. Please login to delete tags.');
+            return;
+        }
+        if (!window.confirm('Are you sure you want to delete this tag?')) return;
+        
+        setIsLoading(true);
+        try {
+            await axios.delete(`http://localhost:8000/tags/${tagTid}`, { withCredentials: true });
+            alert('Tag deleted successfully');
+            fetchTags();
+        } catch (error) {
+            console.error('Error deleting tag:', error);
+            alert('Error deleting tag');
+        } finally {
+            setIsLoading(false);
         }
     };
+
+    if (isLoading) {
+        return <p>Loading...</p>;
+    }
+
+    if (tags.length === 0) {
+        return (
+            <div>
+                <h2>Your Tags</h2>
+                <p>No tags created yet. You must have at least 50 reputation to create new tags!</p>
+            </div>
+        );
+    }
 
     return (
         <div>
-            <h2>Your Tags</h2>
+            <h1>Your Created Tags:</h1>
             <ul>
                 {tags.map(tag => (
                     <li key={tag._id}>
                         {editingTagId === tag._id ? (
-                            <input 
-                                type="text" 
-                                value={newTagName} 
-                                onChange={(e) => setNewTagName(e.target.value)}
-                                onBlur={() => setEditingTagId(null)}
-                            />
+                            <>
+                                <input 
+                                    type="text" 
+                                    value={newTagName} 
+                                    onChange={(e) => setNewTagName(e.target.value)}
+                                />
+                                <button onClick={() => handleEditTag(tag.tid)} disabled={isLoading}>Save</button>
+                            </>
                         ) : (
-                            <span>{tag.name}</span>
-                        )}
-                        <button onClick={() => setEditingTagId(tag._id)}>Edit</button>
-                        <button onClick={() => handleDeleteTag(tag._id)}>Delete</button>
-                        {editingTagId === tag._id && (
-                            <button onClick={() => handleEditTag(tag._id)}>Save</button>
+                            <>
+                                <span>{tag.name}</span>
+                                <button onClick={() => handleEditClick(tag)} disabled={isLoading}>Edit</button>
+                                <button onClick={() => handleDeleteTag(tag.tid)} disabled={isLoading}>Delete</button>
+                            </>
                         )}
                     </li>
                 ))}

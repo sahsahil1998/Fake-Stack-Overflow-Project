@@ -118,7 +118,6 @@ router.put('/update/:aid', authenticateUser, async (req, res) => {
 });
 
 // Route to DELETE a specific answer
-// Route to DELETE a specific answer
 router.delete('/delete/:aid', authenticateUser, async (req, res) => {
     try {
         // Check if the user is authenticated

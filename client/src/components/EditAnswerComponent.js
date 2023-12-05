@@ -5,7 +5,7 @@ import axios from 'axios';
 const EditAnswerComponent = () => {
     const [answer, setAnswer] = useState({ text: '' });
     const [isLoading, setIsLoading] = useState(false);
-    const [isAuthenticated, setIsAuthenticated] = useState(false); // Add state for authentication
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const { aid } = useParams();
     const navigate = useNavigate();
 

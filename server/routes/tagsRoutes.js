@@ -55,7 +55,7 @@ router.post('/', async (req, res) => {
             return res.status(403).json({ message: 'Insufficient reputation to add new tags' });
         }
 
-        const newTag = new Tag({ name, createdBy: user._id }); // Include createdBy
+        const newTag = new Tag({ name, createdBy: user._id });
         await newTag.save();
         res.status(201).json(newTag);
     } catch (err) {
@@ -63,28 +63,38 @@ router.post('/', async (req, res) => {
     }
 });
 
-router.get('/user', authenticateUser, async (req, res) => {
-    try {
-        const userTags = await Tag.find({ createdBy: req.session.user.id });
-        res.json(userTags);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
-});
-
 // Edit a user's tag
-router.put('/:tagId', authenticateUser, async (req, res) => {
+router.put('/edit/:tagId', authenticateUser, async (req, res) => {
+    console.log('Tag ID:', req.params.tagId);
+    console.log('New Name:', req.body.newName);
     try {
-        const { tagId } = req.params;
+        const { tagId: tid } = req.params;
         const { newName } = req.body;
-        const tag = await Tag.findOne({ tid: tagId, createdBy: req.session.user.id });
+
+        // Validation
+        if (!newName.trim()) {
+            return res.status(400).json({ message: 'Tag name cannot be empty' });
+        }
+        if (newName.length > 20) {
+            return res.status(400).json({ message: 'New tag length cannot be more than 20' });
+        }
+
+        const tag = await Tag.findOne({ tid, createdBy: req.session.user.id });
+        console.log('Found tag:', tag);
 
         if (!tag) {
             return res.status(404).json({ message: 'Tag not found or not owned by user' });
         }
 
+        // Check if the tag is used by other users' questions
+        const questionsUsingTag = await Question.find({ tags: tag._id, asked_by: { $ne: req.session.user.id } });
+        if (questionsUsingTag.length > 0) {
+            return res.status(403).json({ message: 'Cannot edit a tag used by other users' });
+        }
+
         tag.name = newName;
         await tag.save();
+
         res.json({ message: 'Tag updated successfully', tag });
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -93,16 +103,26 @@ router.put('/:tagId', authenticateUser, async (req, res) => {
 
 // Delete a user's tag
 router.delete('/:tagId', authenticateUser, async (req, res) => {
+    console.log('Attempting to delete tag with ID:', req.params.tagId);
+    console.log('User ID', req.session.user.id);
     try {
-        const { tagId } = req.params;
-        const tag = await Tag.findOneAndDelete({ tid: tagId, createdBy: req.session.user.id });
+        const { tagId: tid } = req.params;
+
+        const tag = await Tag.findOneAndDelete({ tid, createdBy: req.session.user.id });
+        console.log('Found tag:', tag);
 
         if (!tag) {
             return res.status(404).json({ message: 'Tag not found or not owned by user' });
         }
 
-        // Additional logic needed to remove the tag from associated questions
-        
+        // Check if the tag is used by other users' questions
+        const questionsUsingTag = await Question.find({ tags: tag._id, asked_by: { $ne: req.session.user.id } });
+        if (questionsUsingTag.length > 0) {
+            return res.status(403).json({ message: 'Cannot delete a tag used by other users' });
+        }
+
+        // Remove the tag from all associated questions
+        await Question.updateMany({ tags: tag._id }, { $pull: { tags: tag._id } });
 
         res.json({ message: 'Tag deleted successfully' });
     } catch (err) {
