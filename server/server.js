@@ -30,7 +30,8 @@ app.use(session({
     resave: false,
     saveUninitialized: true,
     // Set secure: true if using https
-    cookie: { httpOnly: true, secure: false }
+    cookie: { httpOnly: true, secure: false,
+    maxAge: 60*60*1000} // 60  mins
 }));
 
 // Use JSON middleware for parsing requests
