@@ -34,28 +34,31 @@ const AnswersPageComponent = () => {
     useEffect(() => {
         const fetchQuestionData = async () => {
             try {
+                // Fetching question data
                 const questionResponse = await axios.get(`http://localhost:8000/questions/${qid}`);
-                setQuestion(questionResponse.data);
+                const questionData = questionResponse.data;
+    
+                setQuestion(questionData);
+    
+                // Increase view count for the question
                 await axios.put(`http://localhost:8000/questions/increaseviewcount/${qid}`);
-            } catch (error) {
-                setError('Error loading question data. Please try again later.');
-            }
-        };
-
-        const fetchUserData = async () => {
-            try {
+    
+                // Fetching user session data
                 const userResponse = await axios.get('http://localhost:8000/api/users/check-session', { withCredentials: true });
                 if (userResponse.data.isLoggedIn) {
                     setUser(userResponse.data.user);
                 }
             } catch (error) {
-                console.error('Error fetching user data:', error);
+                console.error('Error fetching data:', error);
+                setError('Error loading data. Please try again later.');
             }
         };
-
+    
         fetchQuestionData();
-        fetchUserData();
     }, [qid]);
+    
+    
+    
 
     // Helper function to format date and time
     const formatDate = (dateTime) => {
@@ -100,8 +103,7 @@ const AnswersPageComponent = () => {
         return <div>Loading question...</div>;
     }
 
-    // Change page handler
-    const paginate = pageNumber => setCurrentPage(pageNumber);
+    
 
     // Calculate the current answers to display
     const indexOfLastAnswer = currentPage * answersPerPage;
@@ -110,39 +112,31 @@ const AnswersPageComponent = () => {
                             ? question.answers.slice(indexOfFirstAnswer, indexOfLastAnswer)
                             : [];
 
-    // Total number of pages
-    const totalPages = Math.ceil(question.answers.length / answersPerPage);
 
     const PaginationControls = () => {
-        // Check if the current page is the last page
+        const totalPages = Math.ceil(question.answers.length / answersPerPage);
         const isLastPage = currentPage === totalPages;
+        const isFirstPage = currentPage === 1;
+    
+        const fetchPaginatedAnswers = async (pageNumber) => {
+            setCurrentPage(pageNumber);
+            try {
+                const answersResponse = await axios.get(`http://localhost:8000/answers/question/${qid}?page=${pageNumber}&limit=${answersPerPage}`);
+                setQuestion(prev => ({ ...prev, answers: answersResponse.data }));
+            } catch (error) {
+                console.error('Error fetching paginated answers:', error);
+            }
+        };
     
         return (
             <div className="pagination-controls">
-                {[...Array(totalPages).keys()].map(number => {
-                    const pageNumber = number + 1;
-                    const isDisabled = pageNumber === currentPage;
-    
-                    return (
-                        <button 
-                            key={number} 
-                            onClick={() => paginate(pageNumber)} 
-                            className={currentPage === pageNumber ? 'active' : ''} 
-                            disabled={isDisabled}>
-                            Prev
-                        </button>
-                    );
-                })}
-    
-                {/* Next Button */}
-                <button 
-                    onClick={() => paginate(currentPage + 1)} 
-                    disabled={isLastPage}>
-                    Next
-                </button>
+                <button onClick={() => fetchPaginatedAnswers(currentPage - 1)} disabled={isFirstPage}>Prev</button>
+                <button onClick={() => fetchPaginatedAnswers(currentPage + 1)} disabled={isLastPage}>Next</button>
             </div>
         );
     };
+    
+    
 
     const handleVote = async (aid, voteType) => {
         try {
@@ -187,12 +181,16 @@ const AnswersPageComponent = () => {
                         <span>{question.views+1} Views </span>
                         <span>{question.answers.length} answers</span>
                         <h2>{question.title}</h2>
-                        <button onClick={() => navigate('/ask')} id="askQuestionButton" className="mainDivAskButton">Ask a Question</button>
+                        <button onClick={() => navigate('/ask')} id="askQuestionButton" className="mainDivAskButton" disabled={!isAuthenticated}>Ask a Question</button>
                     </div>
     
                     <div id="questionBody">
                         <div>{renderTextWithHyperlinks(question.text)}</div>
                         <span>{question.views} views</span>
+                        <div className="vote-counts">
+                            <span>Upvotes: {question.upvotes}</span>
+                            <span> Downvotes: {question.downvotes}</span>
+                        </div>
                         <div className="questionMetadata">
                             {question.asked_by ? `${question.asked_by.username} asked ${formatDate(question.ask_date_time)}` : 'Unknown user'}
                         </div>
@@ -217,12 +215,19 @@ const AnswersPageComponent = () => {
                             <div key={answer.aid} className="answer-container">
 
 
-                                {isAuthenticated && (
-                                    <div className="vote-buttons">
-                                        <button onClick={() => handleVote(answer.aid, 'upvote')}>Upvote {answer.upvotes}</button>
-                                        <button onClick={() => handleVote(answer.aid, 'downvote')}>Downvote {answer.downvotes}</button>
-                                    </div>
-                                )}
+                                <div className="vote-buttons">
+                                    {isAuthenticated ? (
+                                        <>
+                                            <button onClick={() => handleVote(answer.aid, 'upvote')}>Upvote {answer.upvotes}</button>
+                                            <button onClick={() => handleVote(answer.aid, 'downvote')}>Downvote {answer.downvotes}</button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span>Upvotes: {answer.upvotes}</span>
+                                            <span> Downvotes: {answer.downvotes}</span>
+                                        </>
+                                    )}
+                                </div>
 
 
                                 <div className="answerText">{renderTextWithHyperlinks(answer.text)}</div>

@@ -89,14 +89,19 @@ const HomePageComponent = ({ query }) => {
     };
 
 
-    const handleVote = async ( qid, voteType) => {
+    const handleVote = async (qid, voteType) => {
+        if (!isAuthenticated) {
+            alert('You must be logged in to vote.');
+            return;
+        }
+    
         try {
             // Make an API call to handle upvote/downvote
-            const response = await axios.post(`http://localhost:8000/questions/${qid}/${voteType}`,null, { withCredentials: true });
+            const response = await axios.post(`http://localhost:8000/questions/${qid}/${voteType}`, null, { withCredentials: true });
             console.log(response);
             updateQuestionVotes(qid, response.data);
             console.log('back');
-            await axios.post(`http://localhost:8000/api/users/${voteType}`, null,{ withCredentials: true })
+            await axios.post(`http://localhost:8000/api/users/${voteType}`, null, { withCredentials: true });
         } catch (error) {
             console.error('Error handling vote:', error);
         }
@@ -156,19 +161,20 @@ return (
                             <p>{question.answers.length} answers</p>
                             <p>{question.views || 0} views</p>
                             
-                            {isAuthenticated && (
-                                    <div className="vote-buttons">
-                                        {/* <button onClick={() => handleVote(question.qid, 'upvote')}>Upvote {handleUpvote(any)} </button>
-                                        <button onClick={() => handleVote(question.qid, 'downvote')}>Downvote </button>
-                                        {handleUpvote(question.qid)} */}
-                                        <button onClick={() => handleVote(question.qid, 'upvote')}>
-                        Upvote {question.upvotes} 
-                    </button>
-                    <button onClick={() => handleVote(question.qid, 'downvote')}>
-                        Downvote {question.downvotes}
-                    </button>
-                                    </div>
+                            {/* Vote buttons and counts */}
+                            <div className="vote-buttons">
+                                {isAuthenticated ? (
+                                    <>
+                                        <button onClick={() => handleVote(question.qid, 'upvote')}>Upvote {question.upvotes}</button>
+                                        <button onClick={() => handleVote(question.qid, 'downvote')}>Downvote {question.downvotes}</button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span>Upvotes: {question.upvotes}</span>
+                                        <span> Downvotes: {question.downvotes}</span>
+                                    </>
                                 )}
+                            </div>
                 
                         </div>
                         {/* Question title and navigation */}

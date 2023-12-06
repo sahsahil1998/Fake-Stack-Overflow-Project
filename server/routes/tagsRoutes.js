@@ -32,7 +32,7 @@ router.get('/:tagId/questions', async (req, res) => {
         }
         const questions = await Question.find({ tags: tag._id })
             .populate('tags')
-            .populate('asked_by', 'username') // Populate 'asked_by' with 'username'
+            .populate('asked_by', 'username') 
             .populate('answers')
             .sort({ ask_date_time: -1 }) // Sorting questions by newest first
             .exec();

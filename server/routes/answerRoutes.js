@@ -4,15 +4,25 @@ const router = express.Router();
 const Answer = require('../models/answers');
 const Question = require('../models/questions');
 
-// GET all answers with populated user details
-router.get('/', async (req, res) => {
+// GET paginated answers for a specific question
+router.get('/question/:qid', async (req, res) => {
     try {
-        const answers = await Answer.find().populate('ans_by', 'username');
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 5;
+        const skipIndex = (page - 1) * limit;
+
+        const answers = await Answer.find({ question: req.params.qid })
+                                    .populate('ans_by', 'username')
+                                    .sort({ ans_date_time: -1 }) // Newest answers first
+                                    .skip(skipIndex)
+                                    .limit(limit);
+
         res.json(answers);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 });
+
 
 // POST a new answer
 router.post('/', async (req, res) => {

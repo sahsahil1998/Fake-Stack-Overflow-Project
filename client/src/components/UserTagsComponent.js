@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const UserTagsComponent = () => {
     const [tags, setTags] = useState([]);
@@ -7,6 +8,7 @@ const UserTagsComponent = () => {
     const [newTagName, setNewTagName] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
         // Authentication check
@@ -92,6 +94,7 @@ const UserTagsComponent = () => {
     if (tags.length === 0) {
         return (
             <div>
+                <button onClick={() => navigate('/userprofile')} className="backButton">Back to Profile</button>
                 <h2>Your Tags</h2>
                 <p>No tags created yet. You must have at least 50 reputation to create new tags!</p>
             </div>
@@ -100,6 +103,7 @@ const UserTagsComponent = () => {
 
     return (
         <div>
+            <button onClick={() => navigate('/userprofile')} className="backButton">Back to Profile</button>
             <h1>Your Created Tags:</h1>
             <ul>
                 {tags.map(tag => (

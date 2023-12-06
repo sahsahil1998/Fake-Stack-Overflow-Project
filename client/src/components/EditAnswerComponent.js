@@ -88,7 +88,8 @@ const EditAnswerComponent = () => {
 
     return (
         <div>
-            <h2>Edit Answer</h2>
+            <button onClick={() => navigate('/userprofile')} className="backButton">Back to Profile</button>
+            <h1>Edit Answer</h1>
             {isLoading ? (
                 <p>Loading...</p>
             ) : (

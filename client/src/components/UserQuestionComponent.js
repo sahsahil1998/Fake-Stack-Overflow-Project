@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const QuestionsComponent = () => {
   const [questions, setQuestions] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -29,6 +30,7 @@ const QuestionsComponent = () => {
   if (questions.length === 0) {
     return (
         <div>
+            <button onClick={() => navigate('/userprofile')} className="backButton">Back to Profile</button>
             <h2>Your Asked Questions:</h2>
             <p>No questions asked yet!</p>
         </div>
@@ -37,6 +39,7 @@ const QuestionsComponent = () => {
 
   return (
     <div>
+      <button onClick={() => navigate('/userprofile')} className="backButton">Back to Profile</button>
       <h1>Your Asked Questions:</h1>
       {questions && questions.length > 0 ? (
         <ul>
