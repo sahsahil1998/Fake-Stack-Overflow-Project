@@ -151,19 +151,32 @@ router.get('/:aid', authenticateUser, async (req, res) => {
 // Route to UPDATE a specific answer
 router.put('/update/:aid', authenticateUser, async (req, res) => {
     try {
-        // Check if the user is authenticated
         if (!req.session.user || !req.session.user.username) {
             return res.status(401).json({ message: 'Unauthorized' });
         }
 
+        // Find and update the answer
         const updatedAnswer = await Answer.findOneAndUpdate(
             { aid: req.params.aid },
             { text: req.body.text },
             { new: true }
         );
+
         if (!updatedAnswer) {
             return res.status(404).json({ message: 'Answer not found' });
         }
+
+        // Fetch the associated question using the questionId from the updated answer
+        const question = await Question.findOne({ answers: { $in: [updatedAnswer._id] } });
+
+        if (!question) {
+            console.error('Associated question not found');
+            return res.status(404).json({ message: 'Associated question not found' });
+        }
+
+        // Update the last_answered_time of the question
+        question.last_answered_time = new Date();
+        await question.save();
 
         res.json(updatedAnswer);
     } catch (error) {
@@ -172,18 +185,33 @@ router.put('/update/:aid', authenticateUser, async (req, res) => {
     }
 });
 
+
+
 // Route to DELETE a specific answer
 router.delete('/delete/:aid', authenticateUser, async (req, res) => {
     try {
-        // Check if the user is authenticated
         if (!req.session.user || !req.session.user.username) {
             return res.status(401).json({ message: 'Unauthorized' });
         }
 
+        // Find and delete the answer
         const deletedAnswer = await Answer.findOneAndDelete({ aid: req.params.aid });
+
         if (!deletedAnswer) {
             return res.status(404).json({ message: 'Answer not found' });
         }
+
+        // Fetch the associated question using the questionId from the deleted answer
+        const question = await Question.findOne({ answers: { $in: [deletedAnswer._id] } });
+
+        if (!question) {
+            console.error('Associated question not found');
+            return res.status(404).json({ message: 'Associated question not found' });
+        }
+
+        // Update the last_answered_time of the question
+        question.last_answered_time = new Date();
+        await question.save();
 
         res.json({ message: 'Answer deleted successfully' });
     } catch (error) {
@@ -191,6 +219,7 @@ router.delete('/delete/:aid', authenticateUser, async (req, res) => {
         res.status(500).json({ message: 'Error deleting answer' });
     }
 });
+
 
 
 

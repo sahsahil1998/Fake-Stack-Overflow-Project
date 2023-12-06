@@ -22,7 +22,6 @@ router.get('/', async (req, res) => {
             sortCriteria = { last_answered_time: -1 };
             break;
         case 'unanswered':
-            // Assuming that answers are stored as an array in questions
             sortCriteria = { ask_date_time: -1 };
             filterCriteria = { answers: { $size: 0 } }; // Filter for questions with no answers
             break;
@@ -291,6 +290,9 @@ router.post('/:questionId', async (req, res) => {
             return res.status(404).json({ message: 'Question not found' });
         }
         const { newTitle, newText } = req.body;
+        // Use existing upvotes and downvotes from originalQuestion
+        const upvotes = originalQuestion.upvotes;
+        const downvotes = originalQuestion.downvotes;
         // Update the question
         const updatedQuestion = await Question.findByIdAndUpdate(
             originalQuestion._id, 
