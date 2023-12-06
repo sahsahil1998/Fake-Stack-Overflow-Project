@@ -114,27 +114,29 @@ const AnswersPageComponent = () => {
 
 
     const PaginationControls = () => {
-        const totalPages = Math.ceil(question.answers.length / answersPerPage);
-        const isLastPage = currentPage === totalPages;
-        const isFirstPage = currentPage === 1;
-    
-        const fetchPaginatedAnswers = async (pageNumber) => {
-            setCurrentPage(pageNumber);
-            try {
-                const answersResponse = await axios.get(`http://localhost:8000/answers/question/${qid}?page=${pageNumber}&limit=${answersPerPage}`);
-                setQuestion(prev => ({ ...prev, answers: answersResponse.data }));
-            } catch (error) {
-                console.error('Error fetching paginated answers:', error);
-            }
-        };
-    
-        return (
-            <div className="pagination-controls">
-                <button onClick={() => fetchPaginatedAnswers(currentPage - 1)} disabled={isFirstPage}>Prev</button>
-                <button onClick={() => fetchPaginatedAnswers(currentPage + 1)} disabled={isLastPage}>Next</button>
-            </div>
-        );
+    const totalAnswers = question.answers.length;
+    const totalPages = Math.ceil(totalAnswers / answersPerPage);
+    const isLastPage = currentPage === totalPages || totalAnswers === 0;
+    const isFirstPage = currentPage === 1;
+
+    const fetchPaginatedAnswers = async (pageNumber) => {
+        setCurrentPage(pageNumber);
+        try {
+            const answersResponse = await axios.get(`http://localhost:8000/answers/question/${qid}?page=${pageNumber}&limit=${answersPerPage}`);
+            setQuestion(prev => ({ ...prev, answers: answersResponse.data }));
+        } catch (error) {
+            console.error('Error fetching paginated answers:', error);
+        }
     };
+
+    return (
+        <div className="pagination-controls">
+            <button onClick={() => fetchPaginatedAnswers(currentPage - 1)} disabled={isFirstPage}>Prev</button>
+            <button onClick={() => fetchPaginatedAnswers(currentPage + 1)} disabled={isLastPage}>Next</button>
+        </div>
+    );
+};
+
     
     
 
