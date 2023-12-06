@@ -278,51 +278,48 @@ router.post('/:qid/:voteType', async (req, res) => {
     }
 });
 
-
-router.post('/repost/:questionId', async (req, res) => {
-    console.log('Repost route hit for question ID:', req.params.questionId);
+//Route for user to repost question- makes active
+router.post('/:questionId', async (req, res) => {
     const { questionId } = req.params;
+
     try {
-      const originalQuestion = await Question.findOne({ qid: questionId });
-      console.log('Fetched question:', originalQuestion);
+        const originalQuestion = await Question.findOne({ qid: questionId });
+        console.log('Fetched question:', originalQuestion);
 
-      if (!originalQuestion) {
-        return res.status(404).json({ message: 'Question not found' });
-      }
-
-      // Log the upvotes and downvotes
-      console.log('Upvotes:', originalQuestion.upvotes, 'Downvotes:', originalQuestion.downvotes);
-
-      const { newTitle, newText } = req.body;
-      const upvotes = originalQuestion.upvotes ?? 0;
-      const downvotes = originalQuestion.downvotes ?? 0;
-
-      // Update the question
-      await Question.updateOne(
-        { qid: originalQuestion.qid },
-        {
-          $set: {
-            title: newTitle || originalQuestion.title,
-            text: newText || originalQuestion.text,
-            tags: originalQuestion.tags,
-            answers: originalQuestion.answers,
-            comments: originalQuestion.comments,
-            upvotes: upvotes,
-            downvotes: downvotes,
-            asked_by: originalQuestion.asked_by,
-            views: originalQuestion.views,
-            ask_date_time: originalQuestion.ask_date_time,
-            last_answered_time: new Date(),
-          },
+        if (!originalQuestion) {
+            return res.status(404).json({ message: 'Question not found' });
         }
-      );
+        const { newTitle, newText } = req.body;
+        // Update the question
+        const updatedQuestion = await Question.findByIdAndUpdate(
+            originalQuestion._id, 
+            {
+                $set: {
+                    title: newTitle || originalQuestion.title,
+                    text: newText || originalQuestion.text,
+                    tags: originalQuestion.tags,
+                    answers: originalQuestion.answers,
+                    comments: originalQuestion.comments,
+                    upvotes: upvotes,
+                    downvotes: downvotes,
+                    asked_by: originalQuestion.asked_by,
+                    views: originalQuestion.views,
+                    ask_date_time: originalQuestion.ask_date_time,
+                    last_answered_time: new Date(),
+                },
+            },
+            { new: true }
+        );
 
-      res.json({ message: 'Question reposted successfully' });
+        console.log('Updated question:', updatedQuestion);
+
+        res.json({ message: 'Question reposted successfully', updatedQuestion });
     } catch (error) {
-      console.error('Error reposting question:', error);
-      res.status(500).json({ message: 'Error reposting question' });
+        console.error('Error reposting question:', error);
+        res.status(500).json({ message: `Error reposting question: ${error.message}` });
     }
 });
+
 
 
   // Delete a question and its associated answers and comments

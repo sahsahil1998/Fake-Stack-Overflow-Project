@@ -169,8 +169,26 @@ const AnswersPageComponent = () => {
             return { ...prevQuestion, answers: updatedAnswers };
         });
     };
+
+    const handleAcceptAnswer = async (aid) => {
+        try {
+            const response = await axios.put(`http://localhost:8000/answers/accept/${aid}`, {}, { withCredentials: true });
+            const acceptedAnswer = response.data;
     
+            // Update state to reflect the accepted answer
+            setQuestion(prev => ({
+                ...prev,
+                answers: prev.answers.map(a => ({
+                    ...a,
+                    isAccepted: a.aid === acceptedAnswer.aid ? true : false
+                }))
+            }));
+        } catch (error) {
+            console.error('Error accepting answer:', error);
+        }
+    };
     
+
 
     // Rendering the component UI
     return (
@@ -213,6 +231,9 @@ const AnswersPageComponent = () => {
                     <div className="answers-section">
                         {currentAnswers.length > 0 ? currentAnswers.map(answer => (
                             <div key={answer.aid} className="answer-container">
+                                {question.asked_by._id === user?.id && !answer.isAccepted && (
+                                    <button onClick={() => handleAcceptAnswer(answer.aid)}>Accept Answer</button>
+                                )}
 
 
                                 <div className="vote-buttons">

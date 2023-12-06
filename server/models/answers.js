@@ -10,8 +10,9 @@ const AnswerSchema = new Schema({
     ans_date_time: Date,
     ans_by: { type: Schema.Types.ObjectId, ref: 'User' },
     comments: [{ type: Schema.Types.ObjectId, ref: 'Comment' }],
-    upvotes: { type: Number, default: 0 },    // Number of upvotes
-    downvotes: { type: Number, default: 0 },  // Number of downvotes
+    upvotes: { type: Number, default: 0 },   
+    downvotes: { type: Number, default: 0 },  
+    isAccepted: { type: Boolean, default: false }
 });
 
 AnswerSchema.pre('save', async function (next) {
