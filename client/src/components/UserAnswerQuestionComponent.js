@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
+import '../stylesheets/userAnswers.css';
 
 
 const AnswersComponent = () => {
@@ -31,20 +32,25 @@ const AnswersComponent = () => {
     }
 
     return (
-        <div>
+        <div className="answers-container">
             <button onClick={() => navigate('/userprofile')} className="backButton">Back to Profile</button>
             <h1>Your Answers:</h1>
-            <ul>
-                {answers.map((answer) => (
-                    <li key={answer._id}>
-                        <Link to={`/userprofile/answers/edit/${answer.aid}`}>
-                            {answer.text.substring(0, 50)}...
-                        </Link>
-                    </li>
-                ))}
-            </ul>
+            {answers.length > 0 ? (
+                <ul className="answers-list">
+                    {answers.map((answer) => (
+                        <li key={answer._id}>
+                            <Link to={`/userprofile/answers/edit/${answer.aid}`}>
+                                {answer.text.substring(0, 50)}...
+                            </Link>
+                        </li>
+                    ))}
+                </ul>
+            ) : (
+                <p>No answers created yet!</p>
+            )}
         </div>
     );
+    
 };
 
 export default AnswersComponent;

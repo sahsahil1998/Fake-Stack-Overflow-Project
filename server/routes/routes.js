@@ -154,6 +154,7 @@ router.get("/:qid", async (req, res) => {
 
 // Increment view count
 router.put("/increaseviewcount/:qid", async (req, res) => {
+    console.log("Increasing view")
     try {
         const update = await Question.findOneAndUpdate({ qid: req.params.qid }, {$inc: { views: 1 }}, { new: true });
         res.json(update);

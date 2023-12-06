@@ -15,11 +15,14 @@ router.get('/question/:questionId', async (req, res) => {
             .limit(limit)
             .skip((page - 1) * limit);
 
-        res.json({ comments });
+        const totalCount = await Comment.countDocuments({ onQuestion: questionId });
+
+        res.json({ comments, totalCount });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 });
+
 
 // Route to get comments for an answer
 router.get('/answer/:answerId', async (req, res) => {
@@ -33,7 +36,9 @@ router.get('/answer/:answerId', async (req, res) => {
             .limit(limit)
             .skip((page - 1) * limit);
 
-        res.json({ comments });
+        const totalCount = await Comment.countDocuments({ onAnswer: answerId });
+
+        res.json({ comments, totalCount });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

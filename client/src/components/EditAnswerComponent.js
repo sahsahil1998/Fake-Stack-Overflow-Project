@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import '../stylesheets/editAnswer.css';
 
 const EditAnswerComponent = () => {
     const [answer, setAnswer] = useState({ text: '' });
@@ -87,7 +88,7 @@ const EditAnswerComponent = () => {
     };
 
     return (
-        <div>
+        <div className="edit-answer-container">
             <button onClick={() => navigate('/userprofile')} className="backButton">Back to Profile</button>
             <h1>Edit Answer</h1>
             {isLoading ? (
@@ -101,6 +102,7 @@ const EditAnswerComponent = () => {
             )}
         </div>
     );
+    
 };
 
 export default EditAnswerComponent;
