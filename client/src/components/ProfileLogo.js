@@ -3,11 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import '../stylesheets/profileLogo.css'; // Import the stylesheet for styling
+import '../stylesheets/profileLogo.css'; 
 
 const ProfileLogo = () => {
 
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // Added state to track authentication
+  const [isAuthenticated, setIsAuthenticated] = useState(false); 
 
   useEffect(() => {
     // Fetch user session status on component mount
@@ -27,7 +27,7 @@ const ProfileLogo = () => {
       
       {isAuthenticated ? (
                     <button><Link to="/userprofile">
-                    {/* Add your logo or profile image */}
+      
                     <img src="../assets/ProfileLogo.jpg" alt="User Profile" />
                   </Link>
                   </button>
