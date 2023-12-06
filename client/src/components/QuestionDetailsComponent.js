@@ -26,13 +26,19 @@ const QuestionDetailsComponent = () => {
 
   const handleRepost = async () => {
     try {
-      await axios.post(`http://localhost:8000/questions/repost/${qid}`, { newTitle: editTitle, newText: editText });
+      const response = await axios.post(`http://localhost:8000/questions/${qid}`, {
+        newTitle: editTitle, 
+        newText: editText
+      });
+      console.log('Repost response:', response.data);
       alert('Question reposted successfully');
       navigate('/userprofile/questions'); // Navigate back to the questions list
     } catch (error) {
-      console.error('Error reposting question:', error);
+      console.error('Error reposting question:', error.response.data);
+      alert(`Error reposting question: ${error.response.data.message}`);
     }
   };
+  
 
   const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this question?')) {
