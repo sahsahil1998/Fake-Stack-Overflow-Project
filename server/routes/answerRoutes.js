@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const Answer = require('../models/answers');
 const Question = require('../models/questions');
+const User = require('../models/users');
 
 // GET paginated answers for a specific question
 router.get('/question/:qid', async (req, res) => {
@@ -82,7 +83,7 @@ router.post('/:aid/:voteType', async (req, res) => {
 
 // Route to ACCEPT a specific answer
 router.put('/accept/:aid', authenticateUser, async (req, res) => {
-    console.log("Fetching answer with ID:", req.params.aid);
+    
     
     try {
         const { aid } = req.params;
@@ -92,27 +93,36 @@ router.put('/accept/:aid', authenticateUser, async (req, res) => {
         if (!answer) {
             return res.status(404).json({ message: 'Answer not found' });
         }
+        
+        console.log(answer);
 
         // Fetch the associated question using the questionId from the answer
-        const question = await Question.findById(answer.question);
+        const question = await Question.findOne({ answers: { $in: [answer._id] } });
         if (!question) {
             return res.status(404).json({ message: 'Question not found' });
         }
 
-        console.log("Answer:", answer);
-        console.log("Question:", question);
-        console.log("Session User ID:", req.session.user.username);
-        console.log("Question Asked By ID:", question.asked_by.toString());
+        const username = req.session.user.username;
+        const user = await User.findOne({ username : username});
+        console.log("User found:", user);
+        const userId = user._id.toString();
+
+
+        // console.log("Question:", question);
+        // console.log("Session User name:", req.session.user.username);
+        // console.log("Question Asked By ID:", question.asked_by.toString());
+        // console.log("User sessios ID:", userId);
 
         // Verify that the current user is the one who asked the question
-        if (req.session.user.userId !== question.asked_by.toString()) {
+        if (userId !== question.asked_by.toString()) {
+            
             return res.status(403).json({ message: 'Unauthorized: Only the question asker can accept an answer' });
         }
 
         // Mark the answer as accepted
         answer.isAccepted = true;
         await answer.save();
-
+        
         // Optionally, reset 'isAccepted' for other answers to the same question
         await Answer.updateMany({ question: question._id, _id: { $ne: answer._id } }, { $set: { isAccepted: false } });
 
