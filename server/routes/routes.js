@@ -278,7 +278,7 @@ router.post('/:qid/:voteType', async (req, res) => {
     }
 });
 
-
+//Route for user to repost question- makes active
 router.post('/:questionId', async (req, res) => {
     const { questionId } = req.params;
 
