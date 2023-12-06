@@ -117,6 +117,10 @@ const HomePageComponent = ({ query }) => {
             });
         });
     };
+
+    const truncateText = (text, maxLength = 100) => {
+        return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+    };
    
 // Render function for the home page
 return (
@@ -187,7 +191,7 @@ return (
                             </a>
                         </h2>
                         {/* Display the summary */}
-                        <p className="questionSummary">{question.summary}</p>
+                        <p className="questionSummary">Summary: {truncateText(question.text)}</p>
                         {/* Question metadata like author and ask date */}
                         <div className="lastActivity">
                             <p>{question.asked_by && question.asked_by.username} asked {formatDate(question.ask_date_time)}</p>
