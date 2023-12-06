@@ -52,7 +52,8 @@ const QuestionDetailsComponent = () => {
 
   return (
     <div>
-      <h2>Edit Question</h2>
+      <button onClick={() => navigate('/userprofile')} className="backButton">Back to Profile</button>
+      <h1>Edit Question</h1>
       <div>
         <label>Title:</label>
         <input 

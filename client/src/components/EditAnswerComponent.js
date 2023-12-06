@@ -5,7 +5,7 @@ import axios from 'axios';
 const EditAnswerComponent = () => {
     const [answer, setAnswer] = useState({ text: '' });
     const [isLoading, setIsLoading] = useState(false);
-    const [isAuthenticated, setIsAuthenticated] = useState(false); // Add state for authentication
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const { aid } = useParams();
     const navigate = useNavigate();
 
@@ -88,7 +88,8 @@ const EditAnswerComponent = () => {
 
     return (
         <div>
-            <h2>Edit Answer</h2>
+            <button onClick={() => navigate('/userprofile')} className="backButton">Back to Profile</button>
+            <h1>Edit Answer</h1>
             {isLoading ? (
                 <p>Loading...</p>
             ) : (

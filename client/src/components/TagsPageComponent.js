@@ -1,6 +1,7 @@
 // Importing React and necessary hooks
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 // Importing a helper function to fetch tags
 import { fetchTags } from "../helpers/helper.js";
@@ -9,50 +10,47 @@ import { fetchTags } from "../helpers/helper.js";
 import '../stylesheets/tagsPage.css';
 
 export default function TagsPageComponent() {
-    // State hooks for managing tags data, loading state, and errors
     const [tags, setTags] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
-
-    // Hook for programmatic navigation
+    const [isAuthenticated, setIsAuthenticated] = useState(false); // State to track authentication
     const navigate = useNavigate();
 
-    // Effect hook to fetch tags on component mount
+    // Check if the user is authenticated
+    useEffect(() => {
+        axios.get('http://localhost:8000/api/users/check-session', { withCredentials: true })
+            .then(response => {
+                setIsAuthenticated(response.data.isLoggedIn);
+            })
+            .catch(error => console.error('Error checking user session:', error));
+    }, []);
+
     useEffect(() => {
         setIsLoading(true);
         fetchTags()
-            .then(data => {
-                setTags(data);
-            })
-            .catch(err => {
-                setError(err.message || 'Error loading tags');
-            })
-            .finally(() => {
-                setIsLoading(false);
-            });
+            .then(data => setTags(data))
+            .catch(err => setError(err.message || 'Error loading tags'))
+            .finally(() => setIsLoading(false));
     }, []);
     
-
-    // Function to handle 'Ask a Question' button click
     const handleAskQuestionClick = () => {
-        navigate('/ask'); // Navigating to the ask question page
+        navigate('/ask');
     };
 
-    // Render loading state
     if (isLoading) return <p>Loading...</p>;
-    // Render error state
     if (error) return <p>Error loading data!</p>;
 
-    // Render function for the tags page
     return (
         <div>
-            {/* Header section with tags count and 'Ask a Question' button */}
             <div id="tagsHeader">
                 <span>{tags.length} Tags</span>
                 <h3>All Tags</h3>
-                <button onClick={handleAskQuestionClick} className="askQuestionButton">Ask a Question</button>
+                {isAuthenticated ? (
+                    <button onClick={handleAskQuestionClick} className="askQuestionButton">Ask a Question</button>
+                ) : (
+                    <button disabled className="askQuestionButton">Ask a Question</button>
+                )}
             </div>
-            {/* Container for displaying all the tags */}
             <div className="tagsContainer">
                 {tags.map(tag => (
                     <div className="tagNode" key={tag.tid} onClick={() => navigate(`/tags/${tag.tid}`)}>

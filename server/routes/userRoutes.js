@@ -4,6 +4,7 @@ const router = express.Router();
 const User = require('../models/users');
 const Question = require('../models/questions');
 const Answer = require('../models/answers');
+const Tag = require('../models/tags');
 const bcrypt = require('bcrypt');
 
 // Function to validate email format
@@ -262,7 +263,6 @@ router.get('/tags', authenticateUser, async (req, res) => {
                 reputationPointsChange = -10;
             }
 
-            // Assuming you have a User model
             const user = await User.findOneAndUpdate(
                { username:username},
                 { $inc: { reputationPoints: reputationPointsChange } },
@@ -287,7 +287,7 @@ router.get('/check-reputation', async (req, res) => {
         if (req.session && req.session.user) {
             const username = req.session.user.username;
 
-            // Assuming you have a User model
+            
             const user = await User.find({username:username});
 
             if (user && user.reputationPoints >= 50) {
