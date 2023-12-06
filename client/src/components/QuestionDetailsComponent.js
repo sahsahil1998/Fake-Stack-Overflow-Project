@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import '../stylesheets/questionDetails.css';
 
 const QuestionDetailsComponent = () => {
   const [question, setQuestion] = useState(null);
@@ -57,25 +58,31 @@ const QuestionDetailsComponent = () => {
   }
 
   return (
-    <div>
-      <button onClick={() => navigate('/userprofile')} className="backButton">Back to Profile</button>
-      <h1>Edit Question</h1>
-      <div>
-        <label>Title:</label>
-        <input 
-            type="text" 
-            value={editTitle} 
-            onChange={(e) => setEditTitle(e.target.value)} 
-        />
-      </div>
-      <div>
-        <label>Text:</label>
-        <textarea value={editText} onChange={(e) => setEditText(e.target.value)} />
-      </div>
-      <button onClick={handleRepost}>Repost</button>
-      <button onClick={handleDelete}>Delete</button>
+    <div className="question-details-container">
+        <button onClick={() => navigate('/userprofile')} className="backButton">Back to Profile</button>
+        <h1>Edit Question</h1>
+        <div>
+            <label>Title:</label>
+            <input 
+                type="text" 
+                value={editTitle} 
+                onChange={(e) => setEditTitle(e.target.value)}
+                className="question-input"
+            />
+        </div>
+        <div>
+            <label>Text:</label>
+            <textarea 
+                value={editText} 
+                onChange={(e) => setEditText(e.target.value)}
+                className="question-textarea"
+            />
+        </div>
+        <button onClick={handleRepost} className="editButton">Repost</button>
+        <button onClick={handleDelete} className="deleteButton">Delete</button>
     </div>
-  );
+);
+
 };
 
 export default QuestionDetailsComponent;
