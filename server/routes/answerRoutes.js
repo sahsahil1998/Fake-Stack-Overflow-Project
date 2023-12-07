@@ -55,30 +55,36 @@ router.post('/', async (req, res) => {
 
 router.post('/:aid/:voteType', async (req, res) => {
     try {
-       ;
         const { aid, voteType } = req.params; 
         const updateField = voteType === 'upvote' ? 'upvotes' : 'downvotes';
-     
 
-        // Use Mongoose to update the answer document in the database
-        const updatedAnswer = await Answer.findOne(
-            { aid: aid }
+        const updatedAnswer = await Answer.findOneAndUpdate(
+            { aid: aid },
+            { $inc: { [updateField]: 1 } },
+            { new: true }
         );
 
-        // Update the upvotes or downvotes field
-        updatedAnswer[updateField] += 1;
+        if (!updatedAnswer) {
+            return res.status(404).json({ message: 'Answer not found' });
+        }
 
-        // Save the updated answer document
-        await updatedAnswer.save();
+        const question = await Question.findOne({ answers: { $in: [updatedAnswer._id] } });
 
+        if (!question) {
+            console.error('Associated question not found');
+            return res.status(404).json({ message: 'Associated question not found' });
+        }
 
-     
+        question.last_answered_time = new Date();
+        await question.save();
+
         res.status(200).json(updatedAnswer);
     } catch (err) {
-       
+        console.error('Error in voting:', err);
         res.status(500).json({ message: err.message });
     }
 });
+
 
 // Route to ACCEPT a specific answer
 router.put('/accept/:aid', authenticateUser, async (req, res) => {
