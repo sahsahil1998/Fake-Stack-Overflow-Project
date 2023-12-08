@@ -58,6 +58,8 @@ async function createInitialData() {
                 summary: 'Understanding JavaScript promises',
                 answerCount: 1,
                 views: 5,
+                upvotes: 10,
+                downvotes: 2,
                 ask_date_time: new Date('2023-01-01T08:00:00Z'),
                 last_answered_time: new Date('2023-01-02T08:00:00Z')
             }),
@@ -69,6 +71,8 @@ async function createInitialData() {
                 summary: 'MongoDB schema design best practices',
                 answerCount: 1,
                 views: 3,
+                upvotes: 11,
+                downvotes: 1,
                 ask_date_time: new Date('2023-01-03T08:00:00Z'),
                 last_answered_time: new Date('2023-01-04T08:00:00Z')
             }),
@@ -78,10 +82,12 @@ async function createInitialData() {
                 tags: [tags[2]._id],
                 asked_by: users[2]._id,
                 summary: 'State management in React',
-                answerCount: 0, // No answers yet
+                answerCount: 0, 
                 views: 10,
+                upvotes: 15,
+                downvotes: 0,
                 ask_date_time: new Date('2023-01-05T08:00:00Z'),
-                last_answered_time: null // No answers yet
+                last_answered_time: null
             }),
             new Question({
                 title: 'Node.js Best Practices',
@@ -89,10 +95,12 @@ async function createInitialData() {
                 tags: [tags[3]._id],
                 asked_by: users[3]._id,
                 summary: 'Best practices in Node.js',
-                answerCount: 0, // No answers yet
+                answerCount: 0,
                 views: 7,
+                upvotes: 9,
+                downvotes: 3,
                 ask_date_time: new Date('2023-01-06T08:00:00Z'),
-                last_answered_time: null // No answers yet
+                last_answered_time: null
             }),
             new Question({
                 title: 'CSS Grid vs Flexbox',
@@ -102,6 +110,8 @@ async function createInitialData() {
                 summary: 'Understanding CSS layout tools',
                 answerCount: 2,
                 views: 15,
+                upvotes: 8,
+                downvotes: 1,
                 ask_date_time: new Date('2023-01-07T08:00:00Z'),
                 last_answered_time: new Date('2023-01-08T08:00:00Z')
             }),
@@ -111,10 +121,12 @@ async function createInitialData() {
                 tags: [tags[2]._id, tags[3]._id],
                 asked_by: users[2]._id,
                 summary: 'Async operations in Redux',
-                answerCount: 0, // No answers yet
+                answerCount: 0,
                 views: 4,
+                upvotes: 5,
+                downvotes: 0,
                 ask_date_time: new Date('2023-01-09T08:00:00Z'),
-                last_answered_time: null // No answers yet
+                last_answered_time: null
             }),
             // ... potentially more questions ...
         ];
@@ -127,18 +139,51 @@ async function createInitialData() {
                 question: questions[0]._id,
                 text: 'Promises are used for asynchronous operations. Here is how you can use them.',
                 ans_by: users[1]._id,
-                ans_date_time: new Date()
+                ans_date_time: new Date('2023-01-02T08:00:00Z'),
+                upvotes: 5,
+                downvotes: 1,
+                isAccepted: true
             }),
             new Answer({
                 question: questions[1]._id,
                 text: 'In MongoDB, schema design depends on how you intend to query your data.',
                 ans_by: users[0]._id,
-                ans_date_time: new Date()
+                ans_date_time: new Date('2023-01-04T08:00:00Z'),
+                upvotes: 3,
+                downvotes: 0,
+                isAccepted: false
             }),
-            // Add more answers here...
+            new Answer({
+                question: questions[4]._id,
+                text: 'CSS Grid is great for two-dimensional layouts.',
+                ans_by: users[2]._id,
+                ans_date_time: new Date('2023-01-08T08:00:00Z'),
+                upvotes: 3,
+                downvotes: 1,
+                isAccepted: false
+            }),
+            new Answer({
+                question: questions[4]._id,
+                text: 'Flexbox is perfect for one-dimensional layouts.',
+                ans_by: users[3]._id,
+                ans_date_time: new Date('2023-01-08T09:00:00Z'),
+                upvotes: 4,
+                downvotes: 0,
+                isAccepted: true
+            }),
+            // ... potentially more answers ...
         ];
 
         await Promise.all(answers.map(answer => answer.save()));
+
+        // Update questions with answer count and last answered time
+        for (const answer of answers) {
+            const savedAnswer = await answer.save();
+            await Question.findByIdAndUpdate(savedAnswer.question, {
+                $push: { answers: savedAnswer._id },
+                $set: { last_answered_time: savedAnswer.ans_date_time }
+            }, { new: true });
+        }
 
         // Create initial comments
         const comments = [

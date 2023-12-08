@@ -311,12 +311,27 @@ describe('Home Page Tests as Guest User', () => {
         cy.exec('node ../server/destroy.js'); // Clean up the database
     });
 
+    it('shows an error message and a way to navigate back on system failure', () => {
+        // Intercepting the API call and forcing it to return an error
+        cy.intercept('GET', 'http://localhost:8000/api/users/check-session', { statusCode: 500 });
+    
+        // Reload the page to trigger the intercepted API call
+        cy.visit('http://localhost:3000/#/home');
+    
+        // Check for an error message
+        cy.get('.error-message').should('exist');
+    
+        // Check for a button or link to navigate back to the welcome page
+        cy.get('.back-to-welcome').click();
+        cy.url().should('include', '/'); // Assuming '/' is the route for the welcome page
+    });
+
     it('loads the home page with default Newest view', () => {
         cy.get('.main-top h1').should('contain', 'All Questions');
         cy.get('.button-container .buttonDeco.active').should('contain', 'Newest');
     });
 
-    it('displays the correct number of questions with all details', () => {
+    it('displays the correct number of questions with all details including votes', () => {
         cy.get('.questionContainer .question-entry').should('have.length', 5);
         cy.get('.questionContainer .question-entry').each(($el) => {
             cy.wrap($el).find('.postTitle a').should('exist');
@@ -324,7 +339,13 @@ describe('Home Page Tests as Guest User', () => {
             cy.wrap($el).find('.tags .tagButton').should('exist');
             cy.wrap($el).find('.postStats p').should('exist');
             cy.wrap($el).find('.lastActivity p').should('exist');
+            cy.wrap($el).find('.vote-buttons span').should('exist');
         });
+    });
+
+    it('navigates to question details when question title is clicked', () => {
+        cy.get('.questionContainer .question-entry').first().find('.postTitle a').click();
+        cy.url().should('include', '/questions/'); // Check if URL includes '/questions/'
     });
 
     it('paginates to the next set of questions', () => {
@@ -332,16 +353,69 @@ describe('Home Page Tests as Guest User', () => {
         cy.get('.questionContainer .question-entry').should('have.length', 1);
     });
 
+    it('disables the Prev button on the first page', () => {
+        cy.get('.pagination-controls button').contains('Prev').should('be.disabled');
+    });
+
+    it('disables the Next button on the last page', () => {
+        cy.get('.pagination-controls button').contains('Next').click();
+        cy.get('.pagination-controls button').contains('Next').should('be.disabled');
+    });
+
+    it('sorts questions by Newest view', () => {
+        cy.get('.button-container .buttonDeco').contains('Newest').click();
+        cy.get('.questionContainer .question-entry').first().find('.lastActivity p')
+          .should('contain', 'Jan 09, 2023 at');
+    });
+
     it('sorts questions by Active view', () => {
         cy.get('.button-container .buttonDeco').contains('Active').click();
-        cy.get('.button-container .buttonDeco.active').should('contain', 'Active');
+        // Adjust the expected format to match the new date-time format
+        cy.get('.questionContainer .question-entry').first().find('.lastActivity p')
+        //Question at the top of stack by most recent answer
+          .should('contain', 'Jan 07, 2023 at');
     });
 
     it('sorts questions by Unanswered view', () => {
         cy.get('.button-container .buttonDeco').contains('Unanswered').click();
-        cy.get('.button-container .buttonDeco.active').should('contain', 'Unanswered');
+        cy.get('.questionContainer .question-entry').should('have.length', 3);
+        // Verify the titles of the questions to ensure they are the unanswered ones
+        cy.get('.questionContainer .question-entry').first().find('.postTitle a')
+          .should('contain', 'Handling Async Operations in Redux');
     });
 
+    const testPaginationAndViewCount = (viewType, expectedCount, expectedFirstTitleOnNextPage) => {
+        it(`paginates correctly and shows correct question count in ${viewType} view`, () => {
+            cy.get('.button-container .buttonDeco').contains(viewType).click();
+            cy.get('.main-top p').should('contain', `${expectedCount} questions`);
+
+            if (expectedCount > 5) { // Check if pagination is needed
+                cy.get('.pagination-controls button').contains('Next').click();
+                cy.get('.questionContainer .question-entry').first().find('.postTitle a')
+                    .should('contain', expectedFirstTitleOnNextPage);
+                cy.get('.pagination-controls button').contains('Prev').click();
+            } else {
+                // For views with less than or equal to 5 questions, Prev and Next should be disabled
+                cy.get('.pagination-controls button').contains('Prev').should('be.disabled');
+                cy.get('.pagination-controls button').contains('Next').should('be.disabled');
+            }
+        });
+    };
+
+    testPaginationAndViewCount('Newest', 6, 'How to use promises in JavaScript?');
+    testPaginationAndViewCount('Active', 6, 'Handling Async Operations in Redux');
+    testPaginationAndViewCount('Unanswered', 3);
+
+    it('displays a scrollable list of questions when they overflow', () => {
+        // Assuming '.questionContainer' is the container for the questions
+        cy.get('.questionContainer').should('have.css', 'overflow', 'auto');
+    
+        // You can also check if the height of the container is as expected
+        cy.get('.questionContainer').invoke('height').should('be.gt', 0);
+    
+        // Optionally, you can add more questions to ensure overflow and then check the scroll functionality
+    });
+    
     // Additional tests for error handling, navigation to question details, and other scenarios...
 });
 

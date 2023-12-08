@@ -30,6 +30,9 @@
     height: 20px;
   }
   
+  .back{
+    margin-right: 10%;
+  }
   
   .sidebar {
     grid-area: sidebar;

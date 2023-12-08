@@ -67,7 +67,6 @@ const HomePageComponent = ({ query }) => {
         }
     };
 
-    // Function to format the date and time of questions
     const formatDate = (askDateTime) => {
         const now = new Date();
         const askDate = new Date(askDateTime);
@@ -77,16 +76,22 @@ const HomePageComponent = ({ query }) => {
         if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
         if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
     
-        return new Intl.DateTimeFormat('en-US', { 
-            month: 'short', 
-            day: '2-digit', 
-            year: 'numeric', 
-            hour: '2-digit', 
-            minute: '2-digit', 
-            hour12: false, 
-            hourCycle: 'h23'
-        }).format(askDate).replace(/,/g, '');
+        const dateOptions = { month: 'short', day: '2-digit', year: 'numeric' };
+        const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: false, hourCycle: 'h23' };
+    
+        const formattedDate = new Intl.DateTimeFormat('en-US', dateOptions).format(askDate);
+        const formattedTime = new Intl.DateTimeFormat('en-US', timeOptions).format(askDate);
+    
+        // Check if the year is the same
+        if (askDate.getFullYear() === now.getFullYear()) {
+            return `${formattedDate} at ${formattedTime}`;
+        } else {
+            // Include year in the format if different
+            return `${formattedDate}, at ${formattedTime}`;
+        }
     };
+    
+    
 
 
     const handleVote = async (qid, voteType) => {
