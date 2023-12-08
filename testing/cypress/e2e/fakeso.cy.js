@@ -41,14 +41,14 @@ describe('Create Account Tests', () => {
         cy.get('input[name="password"]').type('password123');
         cy.get('input[name="confirmPassword"]').type('password123');
     
-        // Prepare to handle the alert
+        
         cy.on('window:alert', (text) => {
             expect(text).to.contains('User registered successfully');
         });
     
         cy.get('form').submit();
     
-        // The alert assertion will be checked when the alert occurs
+        
         cy.url().should('include', '/#/login');
     });
 
@@ -117,7 +117,7 @@ describe('Create Account Tests', () => {
     it('checks password and confirm password fields match', () => {
         cy.visit('http://localhost:3000/#/register');
     
-        // Enter valid data for all fields
+        
         cy.get('input[name="username"]').type('validUsername');
         cy.get('input[name="email"]').type('validEmail@example.com');
         cy.get('input[name="password"]').type('password123');
