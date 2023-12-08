@@ -10,6 +10,7 @@ import '../stylesheets/header.css';
 const HeaderComponent = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const navigate = useNavigate();
+    const [error, setError] = useState(false);
 
     // Handler for search functionality
     const handleSearch = (e) => {
@@ -20,6 +21,12 @@ const HeaderComponent = () => {
             // Navigating to the search results page with the search query
             navigate(`/search?query=${e.target.value}`);
         }
+    };
+
+    // Handler for navigating back to the welcome page
+    const handleBackToWelcome = () => {
+        setError(false); // Reset error state
+        navigate('/'); // Navigate to welcome page
     };
 
     // Check user session status on component mount
@@ -58,6 +65,12 @@ const HeaderComponent = () => {
             />
 
             <ProfileLogo />
+
+            {/* Conditional rendering for error state */}
+            {error && (
+                <button onClick={handleBackToWelcome}>Back to Welcome Page</button>
+            )}
+            <button className="back" onClick={() => navigate('/')}>Back to Welcome Page</button>
 
             {/* Conditional rendering based on isAuthenticated state */}
             {isAuthenticated ? (

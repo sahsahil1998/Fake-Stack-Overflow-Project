@@ -56,11 +56,11 @@ const CommentsComponent = ({ parentId, type }) => {
     const handleCommentSubmit = async (e) => {
         e.preventDefault();
         if (newComment.length > 140) {
-            setError('Comment exceeds character limit');
+            setError('Comment exceeds character limit of 140.');
             return;
         }
         if (!user || user.reputationPoints < 50) {
-            setError('Insufficient reputation to comment');
+            setError('Insufficient reputation to comment. Need atleast 50.');
             return;
         }
         try {

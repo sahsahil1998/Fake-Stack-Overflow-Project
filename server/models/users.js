@@ -5,7 +5,7 @@ const UserSchema = new Schema({
     username: { type: String, unique: true, required: true },
     email: { type: String, unique: true, required: true },
     passwordHash: { type: String, required: true }, // Only store the hashed password
-    reputationPoints: { type: Number, default: 0 }, // Adding a reputationPoints field with a default value of 04
+    reputationPoints: { type: Number, default: 0 }, // Adding a reputationPoints field with a default value of 0
     createdAt: { type: Date, default: Date.now } // Adding a createdAt field with a default value of the current date
 });
 
