@@ -1,29 +1,38 @@
 const mongoose = require('mongoose');
-const User = require('./models/User');
-const Tag = require('./models/Tag');
-const Question = require('./models/Question');
-const Answer = require('./models/Answer');
-const Comment = require('./models/Comment');
+const bcrypt = require('bcrypt');
+const User = require('./models/users');
+const Tag = require('./models/tags');
+const Question = require('./models/questions');
+const Answer = require('./models/answers');
+const Comment = require('./models/comments');
 
-mongoose.connect('mongodb://localhost:27017/fake_so', {
+// Update the MongoDB URL if needed
+const mongoDB = 'mongodb://127.0.0.1:27017/fake_so';
+
+mongoose.connect(mongoDB, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useFindAndModify: false,
 });
+
+const saltRounds = 10;
 
 async function createInitialData() {
     try {
+        // Hashing the passwords
+        const hashedPassword1 = await bcrypt.hash('password1', saltRounds);
+        const hashedPassword2 = await bcrypt.hash('password2', saltRounds);
+
         // Create initial users
         const user1 = new User({
             username: 'user1',
             email: 'user1@example.com',
-            passwordHash: 'password1',
+            passwordHash: hashedPassword1,
             reputationPoints: 10
         });
         const user2 = new User({
             username: 'user2',
             email: 'user2@example.com',
-            passwordHash: 'password2',
+            passwordHash: hashedPassword2,
             reputationPoints: 20
         });
         await user1.save();
