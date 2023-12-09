@@ -115,7 +115,6 @@ const HomePageComponent = ({ query }) => {
                 // Handle insufficient reputation error
                 alert('Insufficient reputation to vote.');
             } else {
-                // Handle other types of errors
                 alert('Error handling vote. Please try again later.');
             }
         }

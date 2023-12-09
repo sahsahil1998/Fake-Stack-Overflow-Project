@@ -1295,45 +1295,86 @@ describe.only('Answer Page Tests for Registered User', () => {
         cy.get('.error-message').should('be.visible').and('contain', 'Error loading data');
     });
 
-    it('allows upvoting and downvoting answers with enough reputation', () => {
-        cy.login('user3', 'password3');
-        navigateToQuestionAnswer('How to use promises in JavaScript?');
-        cy.get('.answer-container').first().within(() => {
-            cy.get('.upvote-button').click();
-            // Verify vote count increases
-            cy.get('.vote-count').should('contain', 'UpdatedVoteCount'); // Replace with actual vote count selector and logic
-        });
-        // Similar test for downvoting
-    });
 
     it('allows upvoting and downvoting answers with enough reputation', () => {
         cy.login('user3', 'password3');
         navigateToQuestionAnswer('How to use promises in JavaScript?');
         cy.get('.answer-container').first().within(() => {
-            cy.get('.upvote-button').click();
-            // Verify vote count increases
-            cy.get('.vote-count').invoke('text').then((text) => {
-                const voteCount = parseInt(text);
-                expect(voteCount).to.be.greaterThan(initialVoteCount); // Assuming initialVoteCount is known or fetched earlier
+            // Upvote check
+            cy.get('button').contains('Upvote').invoke('text').then((upvoteText) => {
+                const initialUpvoteCount = parseInt(upvoteText.split(' ')[1]);
+                cy.get('button').contains('Upvote').click();
+                cy.get('button').contains('Upvote').should('contain', initialUpvoteCount + 1);
+            });
+    
+            // Downvote check
+            cy.get('button').contains('Downvote').invoke('text').then((downvoteText) => {
+                const initialDownvoteCount = parseInt(downvoteText.split(' ')[1]);
+                cy.get('button').contains('Downvote').click();
+                cy.get('button').contains('Downvote').should('contain', initialDownvoteCount + 1);
             });
         });
-        // Similar test for downvoting
     });
     
     it('restricts user voting based on reputation', () => {
-        cy.login('user5', 'password5'); // Assuming user5 has less than 50 reputation
+        cy.login('user5', 'password5');
         navigateToQuestionAnswer('How to use promises in JavaScript?');
-    
-        // Set up an alert listener
-        cy.on('window:alert', (text) => {
-            expect(text).to.contains('Insufficient reputation to vote');
-        });
-    
         cy.get('.answer-container').first().within(() => {
-            cy.get('.upvote-button').click(); // Attempt to click the upvote
-            cy.get('.downvote-button').click(); // Attempt to click the downvote
+            cy.get('button').contains('Upvote').click();
+            cy.get('button').contains('Upvote').invoke('text').then((buttonText) => {
+                const initialCount = parseInt(buttonText.split(' ')[1]);
+                cy.get('button').contains('Upvote').should('contain', initialCount);
+            });
+            cy.on('window:alert', (text) => {
+                expect(text).to.contains('Insufficient reputation to vote.');
+            });
+            cy.get('button').contains('Downvote').click();
+            cy.get('button').contains('Downvote').invoke('text').then((downvoteText) => {
+                const initialCount = parseInt(downvoteText.split(' ')[1]);
+                cy.get('button').contains('Downvote').should('contain', initialCount);
+            });
+            cy.on('window:alert', (text) => {
+                expect(text).to.contains('Insufficient reputation to vote.');
+            });
         });
     });
+
+    it('increases reputation by 5 points after upvoting an answer', () => {
+        cy.login('user1', 'password1');
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
+        cy.get('.answer-container').eq(1).find('.vote-buttons').contains('Upvote').click(); // Upvote the second answer
+    
+        // Log out and log in as user5
+        cy.get('button:contains("Logout")').click();
+        cy.login('user5', 'password5');
+        cy.visit('http://localhost:3000/#/userprofile');
+        cy.get('.userDetails').within(() => {
+            cy.get('p').contains('Reputation Points:').invoke('text').then((text) => {
+                const newReputation = parseInt(text.split(':')[1].trim());
+                expect(newReputation).to.equal(15); // user5's initial reputation is 10
+            });
+        });
+    });
+    
+    it('decreases reputation by 10 points after downvoting an answer', () => {
+        cy.login('user1', 'password1');
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
+        cy.get('.answer-container').eq(1).find('.vote-buttons').contains('Upvote').click(); // Downvote the second answer
+    
+        // Log out and log in as user5
+        cy.get('button:contains("Logout")').click();
+        cy.login('user5', 'password5');
+        cy.visit('http://localhost:3000/#/userprofile');
+        cy.get('.userDetails').within(() => {
+            cy.get('p').contains('Reputation Points:').invoke('text').then((text) => {
+                const newReputation = parseInt(text.split(':')[1].trim());
+                expect(newReputation).to.equal(0); // user5's initial reputation is 10
+            });
+        });
+    });
+    
+    
+    
     
     it('allows accepting an answer', () => {
         cy.login('user1', 'password1'); // Assuming user1 is the one who asked the question

@@ -149,6 +149,12 @@ const AnswersPageComponent = () => {
             await axios.post(`http://localhost:8000/api/users/${voteType}`, null,{ withCredentials: true })
         } catch (error) {
             console.error('Error handling vote:', error);
+            if (error.response && error.response.status === 403) {
+                // Handle insufficient reputation error
+                alert('Insufficient reputation to vote.');
+            } else {
+                alert('Error handling vote. Please try again later.');
+            }
         }
     };
 
