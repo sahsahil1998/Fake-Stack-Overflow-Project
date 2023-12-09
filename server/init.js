@@ -171,6 +171,51 @@ async function createInitialData() {
                 downvotes: 0,
                 isAccepted: true
             }),
+            new Answer({
+                question: questions[0]._id,
+                text: 'Another perspective on using promises.',
+                ans_by: users[2]._id,
+                ans_date_time: new Date('2023-01-02T09:00:00Z'),
+                upvotes: 2,
+                downvotes: 0,
+                isAccepted: false
+            }),
+            new Answer({
+                question: questions[0]._id,
+                text: 'Here is an example of using promises in async functions.',
+                ans_by: users[3]._id,
+                ans_date_time: new Date('2023-01-02T10:00:00Z'),
+                upvotes: 3,
+                downvotes: 0,
+                isAccepted: false
+            }),
+            new Answer({
+                question: questions[0]._id,
+                text: 'Promises can also be used with .then() and .catch() methods.',
+                ans_by: users[4]._id,
+                ans_date_time: new Date('2023-01-02T11:00:00Z'),
+                upvotes: 4,
+                downvotes: 1,
+                isAccepted: false
+            }),
+            new Answer({
+                question: questions[0]._id,
+                text: 'Understanding promise chaining is crucial for complex async tasks.',
+                ans_by: users[0]._id,
+                ans_date_time: new Date('2023-01-02T12:00:00Z'),
+                upvotes: 6,
+                downvotes: 2,
+                isAccepted: false
+            }),
+            new Answer({
+                question: questions[0]._id,
+                text: 'Exploring error handling in promises.',
+                ans_by: users[1]._id,
+                ans_date_time: new Date('2023-01-02T13:00:00Z'),
+                upvotes: 7,
+                downvotes: 3,
+                isAccepted: false
+            }),
             // ... potentially more answers ...
         ];
 
@@ -180,6 +225,7 @@ async function createInitialData() {
         for (const answer of answers) {
             const savedAnswer = await answer.save();
             await Question.findByIdAndUpdate(savedAnswer.question, {
+                $inc: { answerCount: 1 },
                 $push: { answers: savedAnswer._id },
                 $set: { last_answered_time: savedAnswer.ans_date_time }
             }, { new: true });

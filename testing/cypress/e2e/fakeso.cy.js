@@ -987,6 +987,16 @@ describe('New Question Page Tests', () => {
     
 });
 
+describe('Answer Page Tests for Guest User', () => {
+    beforeEach(() => {
+        cy.exec('node ../server/init.js');
+        cy.visit('http://localhost:3000/#/ask');
+    });
+
+    afterEach(() => {
+        cy.exec('node ../server/destroy.js');
+    });
+});
 
 
 
