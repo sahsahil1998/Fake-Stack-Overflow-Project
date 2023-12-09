@@ -72,7 +72,7 @@ router.post('/:aid/:voteType', async (req, res) => {
 
         const updateField = voteType === 'upvote' ? 'upvotes' : 'downvotes';
         const updatedAnswer = await Answer.findOneAndUpdate(
-            { _id: aid },
+            { aid: aid },
             { $inc: { [updateField]: 1 } },
             { new: true }
         );
