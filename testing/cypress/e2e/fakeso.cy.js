@@ -987,9 +987,38 @@ describe('New Question Page Tests', () => {
     
 });
 
+
+function navigateToQuestionAnswer(questionTitle) {
+    function findAndClickQuestion() {
+        cy.get('body').then($body => {
+            if ($body.text().includes(questionTitle)) {
+                // If the question is found on the current page, click it
+                cy.contains(questionTitle).click();
+            } else {
+                // If the question is not found, check if there's a 'Next' button and it's enabled
+                cy.get('.pagination-controls').then($pagination => {
+                    if ($pagination.find('button:contains("Next")').is(':enabled')) {
+                        // If 'Next' button is enabled, click it and search again
+                        cy.get('.pagination-controls').find('button:contains("Next")').click();
+                        cy.wait(1000); // Wait for page load, adjust as needed
+                        findAndClickQuestion();
+                    } else {
+                        // If 'Next' button is disabled or not present, fail the test
+                        assert.fail(`Question not found: ${questionTitle}`);
+                    }
+                });
+            }
+        });
+    }
+
+    findAndClickQuestion();
+}
+
+
 describe('Answer Page Tests for Guest User', () => {
     beforeEach(() => {
         cy.exec('node ../server/init.js');
+        cy.visit('http://localhost:3000/#/home');
     });
 
     afterEach(() => {
@@ -997,7 +1026,7 @@ describe('Answer Page Tests for Guest User', () => {
     });
 
     it('displays question details including title, views, text, tags, metadata, and votes', () => {
-        cy.visit('http://localhost:3000/#/questions/q1');
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
         // Check for the presence of question title, number of answers, and views
         cy.get('#answersHeader').within(() => {
             cy.get('h2').should('exist');
@@ -1007,7 +1036,7 @@ describe('Answer Page Tests for Guest User', () => {
     
         // Check for question text, tags, metadata, and votes
         cy.get('#questionBody').within(() => {
-            cy.get('div').first().should('exist'); // Assuming the first div is the question text
+            cy.get('div').first().should('exist');
             cy.get('.questionTags').find('.tagButton').should('have.length.at.least', 1);
             cy.get('.questionMetadata').should('contain', 'asked');
             cy.get('.vote-counts').within(() => {
@@ -1019,19 +1048,19 @@ describe('Answer Page Tests for Guest User', () => {
     
 
     it('increments view count upon page load', () => {
-        cy.visit('http://localhost:3000/#/questions/q1');
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
         cy.get('#answersHeader').should('contain', 'views');
     });
 
     it('displays a set of answers for the question', () => {
-        cy.visit('http://localhost:3000/#/questions/q1');
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
         cy.get('.answers-section').within(() => {
             cy.get('.answer-container').should('have.length.at.least', 1);
         });
     });
 
     it('displays the most recent answer first', () => {
-        cy.visit('http://localhost:3000/#/questions/q1');
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
         cy.get('.answers-section .answer-container').first().within(() => {
             cy.get('.answerAuthor').invoke('text').then((authorText) => {
                 // Extract date from the authorText, assuming it ends with the date
@@ -1044,7 +1073,7 @@ describe('Answer Page Tests for Guest User', () => {
     
 
     it('displays answer details correctly', () => {
-        cy.visit('http://localhost:3000/#/questions/q1');
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
         cy.get('.answers-section .answer-container').first().within(() => {
             cy.get('.answerText').should('exist'); // Answer text
             cy.get('.vote-buttons').should('exist'); // Vote buttons or counts
@@ -1053,21 +1082,21 @@ describe('Answer Page Tests for Guest User', () => {
     });
 
     it('enables the Next button when more answers are available', () => {
-        cy.visit('http://localhost:3000/#/questions/q1'); //Has 6 answers
+        navigateToQuestionAnswer('How to use promises in JavaScript?'); //Has 6 answers
         cy.get('.pagination-controls').within(() => {
             cy.get('button').contains('Next').should('not.be.disabled');
         });
     });
 
     it('disables the Prev button on the first page', () => {
-        cy.visit('http://localhost:3000/#/questions/q1');
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
         cy.get('.pagination-controls').within(() => {
             cy.get('button').contains('Prev').should('be.disabled');
         });
     });
 
     it('loads next set of answers when Next button is clicked', () => {
-        cy.visit('http://localhost:3000/#/questions/q1');
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
         cy.get('.pagination-controls').within(() => {
             cy.get('button').contains('Next').click();
         });
@@ -1075,7 +1104,7 @@ describe('Answer Page Tests for Guest User', () => {
     });
 
     it('enables the Prev button and loads previous answers when clicked', () => {
-        cy.visit('http://localhost:3000/#/questions/q1');
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
         // Navigate to the second page first
         cy.get('.pagination-controls').within(() => {
             cy.get('button').contains('Next').click();
@@ -1089,17 +1118,17 @@ describe('Answer Page Tests for Guest User', () => {
     });
 
     it('shows Ask a Question button as disabled for guest users', () => {
-        cy.visit('http://localhost:3000/#/questions/q1');
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
         cy.get('#askQuestionButton').should('be.disabled');
     });
 
     it('does not display the Answer Question button for guest users', () => {
-        cy.visit('http://localhost:3000/#/questions/q1');
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
         cy.get('.answers-section-button').should('not.exist');
     });
 
     it('displays a message when there are no answers and pagination buttons are disabled', () => {
-        cy.visit('http://localhost:3000/questions/q3');
+        navigateToQuestionAnswer('Introduction to Git and GitHub');
         cy.get('.answers-section').should('contain', 'No answers yet. Be the first to answer!');
         cy.get('.pagination-controls button').each(button => {
             cy.wrap(button).should('be.disabled');
@@ -1108,12 +1137,9 @@ describe('Answer Page Tests for Guest User', () => {
     
 
     it('renders and allows clicking on a valid hyperlink in the question text', () => {
-        cy.visit('http://localhost:3000/questions/q7');
+        navigateToQuestionAnswer('Introduction to Git and GitHub');
         cy.get('#questionBody').within(() => {
             cy.get('a').contains('GitHub').should('have.attr', 'href', 'https://github.com').and('have.attr', 'target', '_blank');
-            // Optionally, you can test if clicking the link opens the correct URL
-            // Note: Cypress does not support testing a new tab/window opening
-            // You might need to use `cy.request` or other methods to validate the URL
         });
     });
 
