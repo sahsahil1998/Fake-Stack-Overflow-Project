@@ -43,7 +43,8 @@ async function createInitialData() {
             new Tag({ name: 'MongoDB', createdBy: users[1]._id }),
             new Tag({ name: 'React', createdBy: users[2]._id }),
             new Tag({ name: 'Node.js', createdBy: users[3]._id }),
-            new Tag({ name: 'CSS', createdBy: users[4]._id })
+            new Tag({ name: 'CSS', createdBy: users[4]._id }),
+            new Tag({ name: 'Git', createdBy: users[0]._id })
         ];
 
         await Promise.all(tags.map(tag => tag.save()));
@@ -126,6 +127,19 @@ async function createInitialData() {
                 upvotes: 5,
                 downvotes: 0,
                 ask_date_time: new Date('2023-01-09T08:00:00Z'),
+                last_answered_time: null
+            }),
+            new Question({
+                title: 'Introduction to Git and GitHub',
+                text: 'I am new to version control and would like to understand Git and GitHub. Can someone provide resources? Here is a useful link: [GitHub](https://github.com)',
+                tags: [tags[5]._id],
+                asked_by: users[0]._id,
+                summary: 'Understanding Git and GitHub',
+                answerCount: 0,
+                views: 6,
+                upvotes: 5,
+                downvotes: 0,
+                ask_date_time: new Date('2023-01-10T08:00:00Z'),
                 last_answered_time: null
             }),
             // ... potentially more questions ...

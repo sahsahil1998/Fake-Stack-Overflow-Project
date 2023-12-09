@@ -198,7 +198,7 @@ const AnswersPageComponent = () => {
             {question ? (
                 <>
                     <div id="answersHeader">
-                        <span>{question.views} Views </span>
+                        <span>{question.views} views </span>
                         <span>{question.answers.length} answers</span>
                         <h2>{question.title}</h2>
                         <button onClick={() => navigate('/ask')} id="askQuestionButton" className="mainDivAskButton" disabled={!isAuthenticated}>Ask a Question</button>

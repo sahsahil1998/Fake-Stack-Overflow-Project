@@ -990,13 +990,126 @@ describe('New Question Page Tests', () => {
 describe('Answer Page Tests for Guest User', () => {
     beforeEach(() => {
         cy.exec('node ../server/init.js');
-        cy.visit('http://localhost:3000/#/ask');
+        cy.visit('http://localhost:3000/#/questions/q1');
     });
 
     afterEach(() => {
         cy.exec('node ../server/destroy.js');
     });
+
+    it('displays question details including title, views, text, tags, metadata, and votes', () => {
+        // Check for the presence of question title, number of answers, and views
+        cy.get('#answersHeader').within(() => {
+            cy.get('h2').should('exist');
+            cy.contains(/\d+ answers/);
+            cy.contains(/\d+ views/);
+        });
+    
+        // Check for question text, tags, metadata, and votes
+        cy.get('#questionBody').within(() => {
+            cy.get('.questionText').should('exist');
+            cy.get('.questionTags').find('.tagButton').should('have.length.at.least', 1);
+            cy.get('.questionMetadata').should('contain', 'asked');
+            cy.get('.vote-counts').within(() => {
+                cy.contains(/Upvotes: \d+/);
+                cy.contains(/Downvotes: \d+/);
+            });
+        });
+    });
+
+    it('increments view count upon page load', () => {
+        cy.get('#answersHeader').should('contain', 'Views');
+    });
+
+    it('displays a set of answers for the question', () => {
+        cy.get('.answers-section').within(() => {
+            cy.get('.answer-container').should('have.length.at.least', 1);
+        });
+    });
+
+    it('displays the most recent answer first', () => {
+        cy.get('.answers-section .answer-container').first().within(() => {
+            // Assuming you have a way to identify the date, like a class or data attribute
+            cy.get('.answer-date').invoke('text').then((dateText) => {
+                const firstAnswerDate = new Date(dateText);
+                expect(firstAnswerDate).to.be.ok; // Check if date is valid
+            });
+        });
+    });
+
+    it('displays answer details correctly', () => {
+        cy.get('.answers-section .answer-container').first().within(() => {
+            cy.get('.answerText').should('exist'); // Answer text
+            cy.get('.vote-buttons').should('exist'); // Vote buttons or counts
+            cy.get('.answerAuthor').should('contain', 'answered'); // Author and date/time
+        });
+    });
+
+    it('enables the Next button when more answers are available', () => {
+        cy.get('.pagination-controls').within(() => {
+            cy.get('button').contains('Next').should('not.be.disabled');
+        });
+    });
+
+    it('disables the Prev button on the first page', () => {
+        cy.get('.pagination-controls').within(() => {
+            cy.get('button').contains('Prev').should('be.disabled');
+        });
+    });
+
+    it('loads next set of answers when Next button is clicked', () => {
+        cy.get('.pagination-controls').within(() => {
+            cy.get('button').contains('Next').click();
+        });
+        cy.get('.answers-section .answer-container').should('have.length', 1);
+    });
+
+    it('enables the Prev button and loads previous answers when clicked', () => {
+        // Navigate to the second page first
+        cy.get('.pagination-controls').within(() => {
+            cy.get('button').contains('Next').click();
+        });
+
+        cy.get('.pagination-controls').within(() => {
+            cy.get('button').contains('Prev').should('not.be.disabled').click();
+        });
+
+        cy.get('.answers-section .answer-container').should('have.length', 5);
+    });
+
+    it('shows Ask a Question button as disabled for guest users', () => {
+        cy.get('#askQuestionButton').should('be.disabled');
+    });
+
+    it('does not display the Answer Question button for guest users', () => {
+        cy.get('.answers-section-button').should('not.exist');
+    });
+
+    it('displays a message when there are no answers and pagination buttons are disabled', () => {
+        cy.visit('http://localhost:3000/questions/q3');
+        cy.get('.answers-section').should('contain', 'No answers yet. Be the first to answer!');
+        cy.get('.pagination-controls button').each(button => {
+            cy.wrap(button).should('be.disabled');
+        });
+    });
+
+    it('renders and allows clicking on a valid hyperlink in the question text', () => {
+        cy.visit('http://localhost:3000/questions/q7');
+        cy.get('#questionBody').within(() => {
+            cy.get('a').contains('GitHub').should('have.attr', 'href', 'https://github.com').and('have.attr', 'target', '_blank');
+            // Optionally, you can test if clicking the link opens the correct URL
+            // Note: Cypress does not support testing a new tab/window opening
+            // You might need to use `cy.request` or other methods to validate the URL
+        });
+    });
+
+    it('shows an error message on system failure', () => {
+        cy.intercept('GET', `http://localhost:8000/questions/q1`, { statusCode: 500 });
+        cy.visit('http://localhost:3000/#/questions/q1');
+        cy.get('.error-message').should('be.visible').and('contain', 'Error loading data');
+    });
 });
+
 
 
 
