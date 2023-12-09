@@ -37,6 +37,7 @@ const HeaderComponent = () => {
             })
             .catch(error => {
                 console.error('Error checking user session:', error);
+                setError('An error occurred. Please try again.');
             });
     }, []);
 
@@ -46,7 +47,7 @@ const HeaderComponent = () => {
             navigate('/'); // Redirect to the welcome page after logout
         } catch (error) {
             console.error('Logout failed:', error);
-            // Optionally, show an error message to the user
+            setError('Failed to log out. Please try again.');
         }
     };
 
@@ -66,11 +67,14 @@ const HeaderComponent = () => {
 
             <ProfileLogo />
 
-            {/* Conditional rendering for error state */}
+            {/* Display error message and back button if there's an error */}
             {error && (
-                <button onClick={handleBackToWelcome}>Back to Welcome Page</button>
+                <div>
+                    <p className="error-message">{error}</p>
+                    <button className="back" onClick={handleBackToWelcome}>Back to Welcome Page</button>
+                </div>
             )}
-            <button className="back" onClick={() => navigate('/')}>Back to Welcome Page</button>
+            <button onClick={() => navigate('/')}>Back to Welcome Page</button>
 
             {/* Conditional rendering based on isAuthenticated state */}
             {isAuthenticated ? (
