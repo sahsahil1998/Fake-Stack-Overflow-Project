@@ -58,11 +58,13 @@ router.get('/search', async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 5;
     const sortOption = req.query.sort || 'newest';
+
     if (!query) {
         return res.status(400).json({ message: "No search query provided" });
     }
 
     let sortCriteria;
+    let filterCriteria = {};
     switch (sortOption) {
         case 'newest':
             sortCriteria = { ask_date_time: -1 };
@@ -72,6 +74,7 @@ router.get('/search', async (req, res) => {
             break;
         case 'unanswered':
             sortCriteria = { ask_date_time: -1 };
+            filterCriteria = { answers: { $size: 0 } };
             break;
         default:
             sortCriteria = { ask_date_time: -1 };
@@ -92,7 +95,6 @@ router.get('/search', async (req, res) => {
             queryConditions.push({ title: { $regex: regex } }, { text: { $regex: regex } });
         }
 
-        // Search for exact tag matches
         if (tagsToSearch.length > 0) {
             const tagIds = (await Tag.find({ name: { $in: tagsToSearch } })).map(tag => tag._id);
             if (tagIds.length > 0) {
@@ -100,55 +102,35 @@ router.get('/search', async (req, res) => {
             }
         }
 
-        // If no conditions match, return no questions found
         if (queryConditions.length === 0) {
             return res.status(404).json({ message: 'No questions found' });
         }
 
-       // Count total matched questions
-       const totalQuestions = await Question.countDocuments({ $or: queryConditions });
-
-       // Fetch questions with sort and pagination
-       const questions = await Question.find({ $or: queryConditions })
-           .populate('tags')
-           .populate('answers')
-           .sort(sortCriteria)
-           .limit(limit)
-           .skip((page - 1) * limit);
-
-       res.json({
-           questions: questions,
-           totalCount: totalQuestions
-       });
-   } catch (err) {
-       res.status(500).json({ message: err.message });
-   }
-});
-
-
-// GET a specific question by qid
-router.get("/:qid", async (req, res) => {
-    try {
-        const question = await Question.findOne({ qid: req.params.qid })
-            .populate('tags')
-            .populate('asked_by', 'username') // Populating the user who asked the question
-            .populate({ 
-                path: 'answers',
-                populate: {
-                    path: 'ans_by',
-                    select: 'username' // Populating the user who answered the question
-                }
-            });
-        
-        if (!question) {
-            return res.status(404).json({ message: 'Question not found' });
+        // Combine search conditions with filter criteria
+        let searchConditions = queryConditions.length > 0 ? { $or: queryConditions } : {};
+        if (Object.keys(filterCriteria).length > 0) {
+            searchConditions = { ...searchConditions, ...filterCriteria };
         }
 
-        res.json(question);
+        const totalQuestions = await Question.countDocuments(searchConditions);
+
+        const questions = await Question.find(searchConditions)
+            .populate('tags')
+            .populate('answers')
+            .populate('asked_by', 'username')
+            .sort(sortCriteria)
+            .limit(limit)
+            .skip((page - 1) * limit);
+
+        res.json({
+            questions: questions,
+            totalCount: totalQuestions
+        });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 });
+
 
 
 // Increment view count
