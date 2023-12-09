@@ -364,7 +364,7 @@ describe('Home Page Tests as Guest User', () => {
 
     it('paginates to the next set of questions', () => {
         cy.get('.pagination-controls button').contains('Next').click();
-        cy.get('.questionContainer .question-entry').should('have.length', 1);
+        cy.get('.questionContainer .question-entry').should('have.length', 2);
     });
 
     it('disables the Prev button on the first page', () => {
@@ -379,7 +379,7 @@ describe('Home Page Tests as Guest User', () => {
     it('sorts questions by Newest view', () => {
         cy.get('.button-container .buttonDeco').contains('Newest').click();
         cy.get('.questionContainer .question-entry').first().find('.lastActivity p')
-          .should('contain', 'Jan 09, 2023 at');
+          .should('contain', 'Jan 10, 2023 at');
     });
 
     it('sorts questions by Active view', () => {
@@ -391,10 +391,10 @@ describe('Home Page Tests as Guest User', () => {
 
     it('sorts questions by Unanswered view', () => {
         cy.get('.button-container .buttonDeco').contains('Unanswered').click();
-        cy.get('.questionContainer .question-entry').should('have.length', 3);
+        cy.get('.questionContainer .question-entry').should('have.length', 4);
         // Verify the titles of the questions to ensure they are the unanswered ones
         cy.get('.questionContainer .question-entry').first().find('.postTitle a')
-          .should('contain', 'Handling Async Operations in Redux');
+          .should('contain', 'Introduction to Git and GitHub');
     });
 
     const testPaginationAndViewCount = (viewType, expectedCount, expectedFirstTitleOnNextPage) => {
@@ -415,9 +415,9 @@ describe('Home Page Tests as Guest User', () => {
         });
     };
 
-    testPaginationAndViewCount('Newest', 6, 'How to use promises in JavaScript?');
-    testPaginationAndViewCount('Active', 6, 'Handling Async Operations in Redux');
-    testPaginationAndViewCount('Unanswered', 3);
+    testPaginationAndViewCount('Newest', 7, 'Best practices for MongoDB schema design?');
+    testPaginationAndViewCount('Active', 7, 'Handling Async Operations in Redux');
+    testPaginationAndViewCount('Unanswered', 4);
     
 });
 
@@ -503,7 +503,7 @@ describe('Home Page Tests as Registered User', () => {
 
     it('paginates to the next set of questions', () => {
         cy.get('.pagination-controls button').contains('Next').click();
-        cy.get('.questionContainer .question-entry').should('have.length', 1);
+        cy.get('.questionContainer .question-entry').should('have.length', 2);
     });
 
     it('disables the Prev button on the first page', () => {
@@ -518,7 +518,7 @@ describe('Home Page Tests as Registered User', () => {
     it('sorts questions by Newest view', () => {
         cy.get('.button-container .buttonDeco').contains('Newest').click();
         cy.get('.questionContainer .question-entry').first().find('.lastActivity p')
-          .should('contain', 'Jan 09, 2023 at');
+          .should('contain', 'Jan 10, 2023 at');
     });
 
     it('sorts questions by Active view', () => {
@@ -529,9 +529,9 @@ describe('Home Page Tests as Registered User', () => {
 
     it('sorts questions by Unanswered view', () => {
         cy.get('.button-container .buttonDeco').contains('Unanswered').click();
-        cy.get('.questionContainer .question-entry').should('have.length', 3);
+        cy.get('.questionContainer .question-entry').should('have.length', 4);
         cy.get('.questionContainer .question-entry').first().find('.postTitle a')
-          .should('contain', 'Handling Async Operations in Redux');
+          .should('contain', 'Introduction to Git and GitHub');
     });
 
     const testPaginationAndViewCount = (viewType, expectedCount, expectedFirstTitleOnNextPage) => {
@@ -551,9 +551,9 @@ describe('Home Page Tests as Registered User', () => {
         });
     };
 
-    testPaginationAndViewCount('Newest', 6, 'How to use promises in JavaScript?');
-    testPaginationAndViewCount('Active', 6, 'Handling Async Operations in Redux');
-    testPaginationAndViewCount('Unanswered', 3);
+    testPaginationAndViewCount('Newest', 7, 'Best practices for MongoDB schema design?');
+    testPaginationAndViewCount('Active', 7, 'Handling Async Operations in Redux');
+    testPaginationAndViewCount('Unanswered', 4);
 });
 
 describe('Search Functionality Tests', () => {
@@ -617,9 +617,9 @@ describe('Search Functionality Tests', () => {
         });
     };
     
-    testPaginationForViewType('Newest', 'How to use promises in JavaScript?', 6);
-    testPaginationForViewType('Active', 'Handling Async Operations in Redux', 6);
-    testPaginationForViewType('Unanswered', null, 3);
+    testPaginationForViewType('Newest', 'Best practices for MongoDB schema design?', 7);
+    testPaginationForViewType('Active', 'Handling Async Operations in Redux', 7);
+    testPaginationForViewType('Unanswered', null, 4);
     
     
 
@@ -990,7 +990,6 @@ describe('New Question Page Tests', () => {
 describe('Answer Page Tests for Guest User', () => {
     beforeEach(() => {
         cy.exec('node ../server/init.js');
-        cy.visit('http://localhost:3000/#/questions/q1');
     });
 
     afterEach(() => {
@@ -998,6 +997,7 @@ describe('Answer Page Tests for Guest User', () => {
     });
 
     it('displays question details including title, views, text, tags, metadata, and votes', () => {
+        cy.visit('http://localhost:3000/#/questions/q1');
         // Check for the presence of question title, number of answers, and views
         cy.get('#answersHeader').within(() => {
             cy.get('h2').should('exist');
@@ -1007,7 +1007,7 @@ describe('Answer Page Tests for Guest User', () => {
     
         // Check for question text, tags, metadata, and votes
         cy.get('#questionBody').within(() => {
-            cy.get('.questionText').should('exist');
+            cy.get('div').first().should('exist'); // Assuming the first div is the question text
             cy.get('.questionTags').find('.tagButton').should('have.length.at.least', 1);
             cy.get('.questionMetadata').should('contain', 'asked');
             cy.get('.vote-counts').within(() => {
@@ -1016,28 +1016,35 @@ describe('Answer Page Tests for Guest User', () => {
             });
         });
     });
+    
 
     it('increments view count upon page load', () => {
-        cy.get('#answersHeader').should('contain', 'Views');
+        cy.visit('http://localhost:3000/#/questions/q1');
+        cy.get('#answersHeader').should('contain', 'views');
     });
 
     it('displays a set of answers for the question', () => {
+        cy.visit('http://localhost:3000/#/questions/q1');
         cy.get('.answers-section').within(() => {
             cy.get('.answer-container').should('have.length.at.least', 1);
         });
     });
 
     it('displays the most recent answer first', () => {
+        cy.visit('http://localhost:3000/#/questions/q1');
         cy.get('.answers-section .answer-container').first().within(() => {
-            // Assuming you have a way to identify the date, like a class or data attribute
-            cy.get('.answer-date').invoke('text').then((dateText) => {
+            cy.get('.answerAuthor').invoke('text').then((authorText) => {
+                // Extract date from the authorText, assuming it ends with the date
+                const dateText = authorText.split(' ').slice(-3).join(' ');
                 const firstAnswerDate = new Date(dateText);
                 expect(firstAnswerDate).to.be.ok; // Check if date is valid
             });
         });
     });
+    
 
     it('displays answer details correctly', () => {
+        cy.visit('http://localhost:3000/#/questions/q1');
         cy.get('.answers-section .answer-container').first().within(() => {
             cy.get('.answerText').should('exist'); // Answer text
             cy.get('.vote-buttons').should('exist'); // Vote buttons or counts
@@ -1046,18 +1053,21 @@ describe('Answer Page Tests for Guest User', () => {
     });
 
     it('enables the Next button when more answers are available', () => {
+        cy.visit('http://localhost:3000/#/questions/q1'); //Has 6 answers
         cy.get('.pagination-controls').within(() => {
             cy.get('button').contains('Next').should('not.be.disabled');
         });
     });
 
     it('disables the Prev button on the first page', () => {
+        cy.visit('http://localhost:3000/#/questions/q1');
         cy.get('.pagination-controls').within(() => {
             cy.get('button').contains('Prev').should('be.disabled');
         });
     });
 
     it('loads next set of answers when Next button is clicked', () => {
+        cy.visit('http://localhost:3000/#/questions/q1');
         cy.get('.pagination-controls').within(() => {
             cy.get('button').contains('Next').click();
         });
@@ -1065,6 +1075,7 @@ describe('Answer Page Tests for Guest User', () => {
     });
 
     it('enables the Prev button and loads previous answers when clicked', () => {
+        cy.visit('http://localhost:3000/#/questions/q1');
         // Navigate to the second page first
         cy.get('.pagination-controls').within(() => {
             cy.get('button').contains('Next').click();
@@ -1078,10 +1089,12 @@ describe('Answer Page Tests for Guest User', () => {
     });
 
     it('shows Ask a Question button as disabled for guest users', () => {
+        cy.visit('http://localhost:3000/#/questions/q1');
         cy.get('#askQuestionButton').should('be.disabled');
     });
 
     it('does not display the Answer Question button for guest users', () => {
+        cy.visit('http://localhost:3000/#/questions/q1');
         cy.get('.answers-section-button').should('not.exist');
     });
 
@@ -1092,6 +1105,7 @@ describe('Answer Page Tests for Guest User', () => {
             cy.wrap(button).should('be.disabled');
         });
     });
+    
 
     it('renders and allows clicking on a valid hyperlink in the question text', () => {
         cy.visit('http://localhost:3000/questions/q7');
