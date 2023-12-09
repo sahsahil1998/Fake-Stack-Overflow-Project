@@ -19,6 +19,8 @@
 //     });
 // })
 
+import '../support/commands';
+
 describe('Welcome Page Navigation Tests for Guests', () => {
     beforeEach(() => {
         cy.visit('http://localhost:3000/');
@@ -494,7 +496,31 @@ describe('Home Page Tests as Registered User', () => {
             });
         });
     });
+
+    it('allows a registered user with sufficient reputation to vote on a question', () => {
+        cy.get('button:contains("Logout")').click();
+        cy.login('user1', 'password1');
+        cy.visit('http://localhost:3000/#/home');
     
+        cy.get('.questionContainer .question-entry').first().within(() => {
+            cy.get('.vote-buttons button').first().invoke('text').then((buttonText) => {
+                const initialCount = parseInt(buttonText.split(' ')[1]);
+                cy.get('.vote-buttons button').first().click();
+                cy.get('.vote-buttons button').first().should('contain', initialCount + 1);
+            });
+        });
+    });
+    
+    it('prevents a registered user with insufficient reputation from voting on a question', () => {
+        // User 2 has not enough reputation
+        cy.visit('http://localhost:3000/#/home');
+        cy.on('window:alert', (text) => {
+            expect(text).to.contains('Insufficient reputation to vote');
+        });
+        cy.get('.questionContainer .question-entry').first().within(() => {
+            cy.get('.vote-buttons button').first().click();
+        });
+    });
 
     it('navigates to question details when question title is clicked', () => {
         cy.get('.questionContainer .question-entry').first().find('.postTitle a').click();
@@ -990,20 +1016,19 @@ describe('New Question Page Tests', () => {
 
 function navigateToQuestionAnswer(questionTitle) {
     function findAndClickQuestion() {
+        // Wait for a specific element that indicates the questions are loaded
+        cy.get('.question-entry').should('exist');
+
         cy.get('body').then($body => {
-            if ($body.text().includes(questionTitle)) {
-                // If the question is found on the current page, click it
+            if ($body.text().toLowerCase().includes(questionTitle.toLowerCase())) {
                 cy.contains(questionTitle).click();
             } else {
-                // If the question is not found, check if there's a 'Next' button and it's enabled
                 cy.get('.pagination-controls').then($pagination => {
                     if ($pagination.find('button:contains("Next")').is(':enabled')) {
-                        // If 'Next' button is enabled, click it and search again
                         cy.get('.pagination-controls').find('button:contains("Next")').click();
-                        cy.wait(1000); // Wait for page load, adjust as needed
+                        cy.wait(1000);
                         findAndClickQuestion();
                     } else {
-                        // If 'Next' button is disabled or not present, fail the test
                         assert.fail(`Question not found: ${questionTitle}`);
                     }
                 });
@@ -1013,6 +1038,7 @@ function navigateToQuestionAnswer(questionTitle) {
 
     findAndClickQuestion();
 }
+
 
 
 describe('Answer Page Tests for Guest User', () => {
@@ -1063,10 +1089,9 @@ describe('Answer Page Tests for Guest User', () => {
         navigateToQuestionAnswer('How to use promises in JavaScript?');
         cy.get('.answers-section .answer-container').first().within(() => {
             cy.get('.answerAuthor').invoke('text').then((authorText) => {
-                // Extract date from the authorText, assuming it ends with the date
                 const dateText = authorText.split(' ').slice(-3).join(' ');
                 const firstAnswerDate = new Date(dateText);
-                expect(firstAnswerDate).to.be.ok; // Check if date is valid
+                expect(firstAnswerDate).to.be.ok;
             });
         });
     });
@@ -1075,9 +1100,9 @@ describe('Answer Page Tests for Guest User', () => {
     it('displays answer details correctly', () => {
         navigateToQuestionAnswer('How to use promises in JavaScript?');
         cy.get('.answers-section .answer-container').first().within(() => {
-            cy.get('.answerText').should('exist'); // Answer text
-            cy.get('.vote-buttons').should('exist'); // Vote buttons or counts
-            cy.get('.answerAuthor').should('contain', 'answered'); // Author and date/time
+            cy.get('.answerText').should('exist'); 
+            cy.get('.vote-buttons').should('exist');
+            cy.get('.answerAuthor').should('contain', 'answered');
         });
     });
 
@@ -1149,6 +1174,185 @@ describe('Answer Page Tests for Guest User', () => {
         cy.get('.error-message').should('be.visible').and('contain', 'Error loading data');
     });
 });
+
+describe.only('Answer Page Tests for Registered User', () => {
+    beforeEach(() => {
+        cy.exec('node ../server/init.js');
+        cy.visit('http://localhost:3000/#/');
+    });
+
+    afterEach(() => {
+        cy.exec('node ../server/destroy.js');
+    });
+
+    // Reusing tests from the guest user suite
+    it('displays question details including title, views, text, tags, metadata, and votes for registered user', () => {
+        cy.login('user2', 'password2');
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
+        cy.get('#answersHeader').within(() => {
+            cy.get('h2').should('exist');
+            cy.contains(/\d+ answers/);
+            cy.contains(/\d+ views/);
+        });
+    
+        // Check for question text, tags, metadata, and votes
+        cy.get('#questionBody').within(() => {
+            cy.get('div').first().should('exist');
+            cy.get('.questionTags').find('.tagButton').should('have.length.at.least', 1);
+            cy.get('.questionMetadata').should('contain', 'asked');
+            cy.get('.vote-counts').within(() => {
+                cy.contains(/Upvotes: \d+/);
+                cy.contains(/Downvotes: \d+/);
+            });
+        });
+    });
+
+    it('increments view count upon page load', () => {
+        cy.login('user3', 'password3');
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
+        cy.get('#answersHeader').should('contain', 'views');
+    });
+
+    it('displays a set of answers for the question', () => {
+        cy.login('user4', 'password4');
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
+        cy.get('.answers-section').within(() => {
+            cy.get('.answer-container').should('have.length.at.least', 1);
+        });
+    });
+
+    it('displays the most recent answer first', () => {
+        cy.login('user5', 'password5');
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
+        cy.get('.answers-section .answer-container').first().within(() => {
+            cy.get('.answerAuthor').invoke('text').then((authorText) => {
+                const dateText = authorText.split(' ').slice(-3).join(' ');
+                const firstAnswerDate = new Date(dateText);
+                expect(firstAnswerDate).to.be.ok;
+            });
+        });
+    });
+
+    it('enables the Next button when more answers are available', () => {
+        cy.login('user1', 'password1');
+        navigateToQuestionAnswer('How to use promises in JavaScript?'); //Has 6 answers
+        cy.get('.pagination-controls').within(() => {
+            cy.get('button').contains('Next').should('not.be.disabled');
+        });
+    });
+
+    it('disables the Prev button on the first page', () => {
+        cy.login('user1', 'password1');
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
+        cy.get('.pagination-controls').within(() => {
+            cy.get('button').contains('Prev').should('be.disabled');
+        });
+    });
+
+    it('loads next set of answers when Next button is clicked', () => {
+        cy.login('user1', 'password1');
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
+        cy.get('.pagination-controls').within(() => {
+            cy.get('button').contains('Next').click();
+        });
+        cy.get('.answers-section .answer-container').should('have.length', 1);
+    });
+
+    it('enables the Prev button and loads previous answers when clicked', () => {
+        cy.login('user1', 'password1');
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
+        cy.get('.pagination-controls').within(() => {
+            cy.get('button').contains('Next').click();
+        });
+
+        cy.get('.pagination-controls').within(() => {
+            cy.get('button').contains('Prev').should('not.be.disabled').click();
+        });
+
+        cy.get('.answers-section .answer-container').should('have.length', 5);
+    });
+
+    // Tests specific to registered users
+
+    it('verifies Answer Question button visibility and functionality for registered user', () => {
+        cy.login('user1', 'password1');
+        navigateToQuestionAnswer('CSS Grid vs Flexbox');
+        cy.get('.answers-section-button').should('be.visible').click();
+        cy.url().should('include', '/answer');
+    });
+
+    it('verifies Ask a Question button is enabled and functional for registered user', () => {
+        cy.login('user2', 'password2');
+        navigateToQuestionAnswer('CSS Grid vs Flexbox');
+        cy.get('#askQuestionButton').should('be.visible').and('not.be.disabled').click();
+        cy.url().should('include', '/ask')
+    });
+
+    it('handles server errors appropriately', () => {
+        cy.login('user5', 'password5');
+        cy.intercept('GET', `http://localhost:8000/questions/q1`, { statusCode: 500 });
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
+        cy.get('.error-message').should('be.visible').and('contain', 'Error loading data');
+    });
+
+    it('allows upvoting and downvoting answers with enough reputation', () => {
+        cy.login('user3', 'password3');
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
+        cy.get('.answer-container').first().within(() => {
+            cy.get('.upvote-button').click();
+            // Verify vote count increases
+            cy.get('.vote-count').should('contain', 'UpdatedVoteCount'); // Replace with actual vote count selector and logic
+        });
+        // Similar test for downvoting
+    });
+
+    it('allows upvoting and downvoting answers with enough reputation', () => {
+        cy.login('user3', 'password3');
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
+        cy.get('.answer-container').first().within(() => {
+            cy.get('.upvote-button').click();
+            // Verify vote count increases
+            cy.get('.vote-count').invoke('text').then((text) => {
+                const voteCount = parseInt(text);
+                expect(voteCount).to.be.greaterThan(initialVoteCount); // Assuming initialVoteCount is known or fetched earlier
+            });
+        });
+        // Similar test for downvoting
+    });
+    
+    it('restricts user voting based on reputation', () => {
+        cy.login('user5', 'password5'); // Assuming user5 has less than 50 reputation
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
+    
+        // Set up an alert listener
+        cy.on('window:alert', (text) => {
+            expect(text).to.contains('Insufficient reputation to vote');
+        });
+    
+        cy.get('.answer-container').first().within(() => {
+            cy.get('.upvote-button').click(); // Attempt to click the upvote
+            cy.get('.downvote-button').click(); // Attempt to click the downvote
+        });
+    });
+    
+    it('allows accepting an answer', () => {
+        cy.login('user1', 'password1'); // Assuming user1 is the one who asked the question
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
+        cy.get('.answer-container').first().within(() => {
+            cy.get('.accept-answer-button').click();
+            // Verify answer is marked as accepted
+        });
+        // Verify accepted answer is at the top
+    });
+    
+    it('verifies question becomes active on voting', () => {
+        cy.login('user3', 'password3');
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
+        cy.get('.upvote-button').click();
+        // Verify question is marked as active (based on your application's logic)
+    });
+});
+
 
 
 

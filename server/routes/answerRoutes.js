@@ -56,11 +56,23 @@ router.post('/', async (req, res) => {
 
 router.post('/:aid/:voteType', async (req, res) => {
     try {
-        const { aid, voteType } = req.params; 
-        const updateField = voteType === 'upvote' ? 'upvotes' : 'downvotes';
+        const { aid, voteType } = req.params;
 
+        // Check if user is logged in and has enough reputation
+        if (!req.session || !req.session.user) {
+            return res.status(401).json({ message: 'User not logged in' });
+        }
+
+        const username = req.session.user.username;
+        const user = await User.findOne({ username: username });
+
+        if (!user || user.reputationPoints < 50) {
+            return res.status(403).json({ message: 'Insufficient reputation to vote' });
+        }
+
+        const updateField = voteType === 'upvote' ? 'upvotes' : 'downvotes';
         const updatedAnswer = await Answer.findOneAndUpdate(
-            { aid: aid },
+            { _id: aid },
             { $inc: { [updateField]: 1 } },
             { new: true }
         );
@@ -69,15 +81,12 @@ router.post('/:aid/:voteType', async (req, res) => {
             return res.status(404).json({ message: 'Answer not found' });
         }
 
-        const question = await Question.findOne({ answers: { $in: [updatedAnswer._id] } });
+        // Update the last_answered_time of the associated question
+        await Question.findByIdAndUpdate(updatedAnswer.question, { last_answered_time: new Date() });
 
-        if (!question) {
-            console.error('Associated question not found');
-            return res.status(404).json({ message: 'Associated question not found' });
-        }
-
-        question.last_answered_time = new Date();
-        await question.save();
+        // Update user's reputation based on the vote type
+        const reputationChange = voteType === 'upvote' ? 5 : -10;
+        await User.findByIdAndUpdate(user._id, { $inc: { reputationPoints: reputationChange } });
 
         res.status(200).json(updatedAnswer);
     } catch (err) {
@@ -85,6 +94,7 @@ router.post('/:aid/:voteType', async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 });
+
 
 
 // Route to ACCEPT a specific answer

@@ -256,29 +256,43 @@ router.post('/:qid/answers', async (req, res) => {
 
 router.post('/:qid/:voteType', async (req, res) => {
     try {
-        const { qid, voteType } = req.params; 
-        const updateField = voteType === 'upvote' ? 'upvotes' : 'downvotes';
+        const { qid, voteType } = req.params;
 
-        // Find the question and update its vote count
-        const updatedQuestion = await Question.findOneAndUpdate(
-            { qid: qid },
-            { 
-                $inc: { [updateField]: 1 },
-                $set: { last_answered_time: new Date() }
-            },
-            { new: true }
-        );
+        // Check if user is logged in and has enough reputation
+        if (req.session && req.session.user) {
+            const username = req.session.user.username;
+            const user = await User.findOne({ username: username });
 
-        if (!updatedQuestion) {
-            return res.status(404).json({ message: 'Question not found' });
+            if (!user || user.reputationPoints < 50) {
+                return res.status(403).json({ message: 'Insufficient reputation to vote' });
+            }
+
+            const updateField = voteType === 'upvote' ? 'upvotes' : 'downvotes';
+
+            // Find the question and update its vote count
+            const updatedQuestion = await Question.findOneAndUpdate(
+                { qid: qid },
+                { 
+                    $inc: { [updateField]: 1 },
+                    $set: { last_answered_time: new Date() }
+                },
+                { new: true }
+            );
+
+            if (!updatedQuestion) {
+                return res.status(404).json({ message: 'Question not found' });
+            }
+
+            res.status(200).json(updatedQuestion);    
+        } else {
+            return res.status(401).json({ message: 'User not logged in' });
         }
-
-        res.status(200).json(updatedQuestion);    
     } catch (error) {
         console.error('Error in voting on question:', error);
         res.status(500).json({ message: error.message });
     }
 });
+
 
 
 //Route for user to repost question- makes active
