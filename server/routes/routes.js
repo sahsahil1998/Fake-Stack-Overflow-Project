@@ -131,6 +131,29 @@ router.get('/search', async (req, res) => {
     }
 });
 
+// GET a specific question by qid
+router.get("/:qid", async (req, res) => {
+    try {
+        const question = await Question.findOne({ qid: req.params.qid })
+            .populate('tags')
+            .populate('asked_by', 'username') 
+            .populate({ 
+                path: 'answers',
+                populate: {
+                    path: 'ans_by',
+                    select: 'username'
+                }
+            });
+        
+        if (!question) {
+            return res.status(404).json({ message: 'Question not found' });
+        }
+
+        res.json(question);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
 
 
 // Increment view count
