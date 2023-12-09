@@ -29,6 +29,7 @@ export default function QuestionTagsPage() {
             } catch (err) {
                 // Handling errors and updating the error state
                 setError(err.response ? err.response.data.message : err.message);
+                setError("Error loading questions");
             } finally {
                 // Setting the loading state to false after data fetch or error
                 setIsLoading(false);
@@ -64,10 +65,15 @@ export default function QuestionTagsPage() {
         navigate(`/questions/${questionId}`);
     };
 
-    // Render loading state
     if (isLoading) return <p>Loading...</p>;
-    // Render error state
-    if (error) return <p>Error: {error}</p>;
+    if (error) {
+        return (
+            <div>
+                <p className="error-message">{error}</p>
+                <button className="back" onClick={() => navigate('/')}>Back to Welcome Page</button>
+            </div>
+        );
+    }
 
     // Render function for the questions tagged with a specific tag
     return (

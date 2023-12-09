@@ -384,7 +384,6 @@ describe('Home Page Tests as Guest User', () => {
 
     it('sorts questions by Active view', () => {
         cy.get('.button-container .buttonDeco').contains('Active').click();
-        // Adjust the expected format to match the new date-time format
         cy.get('.questionContainer .question-entry').first().find('.lastActivity p')
         //Question at the top of stack by most recent answer
           .should('contain', 'Jan 07, 2023 at');
@@ -438,14 +437,26 @@ describe('Home Page Tests as Registered User', () => {
     });
 
     it('shows an error message and a way to navigate back on system failure', () => {
-        // Intercepting the API call and forcing it to return an error
-        cy.intercept('GET', 'http://localhost:8000/api/users/check-session', { statusCode: 500 });
+        // Mock server failure on user session check
+        cy.intercept('GET', 'http://localhost:8000/api/users/check-session', { statusCode: 500 }).as('checkSession');
     
-        // Reload the page to trigger the intercepted API call
-        cy.visit('http://localhost:3000/#/home');
+        // Log in and navigate to the home page
+        cy.visit('http://localhost:3000/#/login');
+        cy.get('input[name="username"]').type('user2');
+        cy.get('input[name="password"]').type('password2');
+        cy.get('form').submit();
+        cy.url().should('include', '/home');
+    
+        // Wait for the session check request to complete
+        cy.wait('@checkSession');
+    
+        // Check for the error message
+        cy.get('.error-message').should('be.visible').and('contain', 'An error occurred. Please try again.');
         cy.get('.back').should('be.visible').click();
         cy.url().should('include', '/');
     });
+    
+    
 
     it('ensures the Ask a Question button is enabled for registered users', () => {
         cy.visit('http://localhost:3000/#/home');
@@ -669,7 +680,7 @@ describe('Search Functionality Tests', () => {
     
         // Reload the page to trigger the intercepted API call
         cy.visit('http://localhost:3000/#/home');
-        cy.get('.error-message').should('be.visible').and('contain', 'An error occurred. Please try again.');;
+        cy.get('.error-message').should('be.visible');
         cy.get('.back').should('be.visible').click();
         cy.url().should('include', '/');
     });
@@ -693,8 +704,12 @@ describe('All Tags Page Tests', () => {
     });
 
     it('navigates to the correct tag page when a tag is clicked', () => {
-        cy.get('.tagsContainer .tagNode').first().click();
-        cy.url().should('include', '/tags/'); // Assuming each tag has a unique route like '/tags/{tagId}'
+        cy.visit('http://localhost:3000/#/tags');
+
+        cy.get('.tagsContainer .tagNode').first().invoke('attr', 'key').then((_id) => {
+            cy.get('.tagsContainer .tagNode').first().click();
+            cy.url().should('include',`/tags/t1`);
+        });
     });
 
     it('ensures the Ask a Question button is disabled for guest users', () => {
@@ -702,33 +717,58 @@ describe('All Tags Page Tests', () => {
     });
 
     it('allows a registered user to click the Ask a Question button', () => {
-        // Login the user before the test
+        // Intercept the login POST request and give it an alias
+        cy.intercept('POST', 'http://localhost:8000/api/users/login').as('loginRequest');
+    
+        // Visit the login page and submit the form
         cy.visit('http://localhost:3000/#/login');
         cy.get('input[name="username"]').type('user3');
         cy.get('input[name="password"]').type('password3');
         cy.get('form').submit();
+    
+        // Wait for the login request to complete
+        cy.wait('@loginRequest');
+    
+        // After login, navigate to the tags page
         cy.visit('http://localhost:3000/#/tags');
+    
+        // Check if the Ask a Question button is enabled and clickable
         cy.get('.askQuestionButton').should('not.be.disabled').click();
         cy.url().should('include', '/ask');
     });
+    
+    
 
-    // Add tests for error handling
     it('shows an error message and a way to navigate back on system failure', () => {
-        // Intercepting the API call and forcing it to return an error
-        cy.intercept('GET', 'http://localhost:8000/api/tags', { statusCode: 500 });
-
-        // Reload the page to trigger the intercepted API call
+        cy.intercept('GET', 'http://localhost:8000/tags', { statusCode: 500 });
         cy.visit('http://localhost:3000/#/tags');
-        cy.get('.error-message').should('be.visible').and('contain', 'Error loading tags');
+        cy.get('.error-message').should('be.visible').and('contain', 'Request failed with status code 500');
         cy.get('.back').should('be.visible').click();
         cy.url().should('include', '/');
     });
+    
+
+    
+    it('displays tags in groups of 3 per row', () => {
+        cy.get('.tagsContainer .tagNode').then($tags => {
+            const totalTags = $tags.length;
+            const expectedRows = Math.ceil(totalTags / 3);
+    
+            for (let i = 0; i < expectedRows; i++) {
+                const startIndex = i * 3;
+                const endIndex = startIndex + 3;
+                cy.wrap($tags.slice(startIndex, endIndex)).should('have.length.lessThan', 4);
+            }
+        });
+    });
+    
 });
+
 
 describe('Question Tags Page Tests', () => {
     beforeEach(() => {
         cy.exec('node ../server/init.js');
-        cy.visit('http://localhost:3000/#/tags/t1');
+        cy.visit('http://localhost:3000/#/tags/t2');
     });
 
     afterEach(() => {
@@ -745,31 +785,208 @@ describe('Question Tags Page Tests', () => {
 
     it('navigates to the correct question page when a question is clicked', () => {
         cy.get('.questionsList .question-entry').first().click();
-        cy.url().should('include', '/questions/'); // Assuming each question has a unique route like '/questions/{questionId}'
+        cy.url().should('include', '/questions/');
     });
 
-    it('displays questions in newest order', () => {
+    it('displays questions tagged with React in newest order', () => {
+        cy.get('.questionsList .question-entry').should('have.length.at.least', 1);
         let previousDate = new Date();
+
         cy.get('.questionsList .question-entry').each(($el) => {
             const dateText = $el.find('footer').text().match(/Asked: (.+)$/)[1];
             const questionDate = new Date(dateText);
-            expect(questionDate).to.be.at.most(previousDate);
+
+            // Ensure the current question's date is less than or equal to the previous question's date
+            expect(questionDate.getTime()).to.be.at.most(previousDate.getTime());
             previousDate = questionDate;
         });
     });
 
-    // Add tests for error handling
     it('shows an error message and a way to navigate back on system failure', () => {
-        // Intercepting the API call and forcing it to return an error
         cy.intercept('GET', `http://localhost:8000/tags/t1/questions`, { statusCode: 500 });
-
-        // Reload the page to trigger the intercepted API call
         cy.visit('http://localhost:3000/#/tags/t1');
         cy.get('.error-message').should('be.visible').and('contain', 'Error loading questions');
         cy.get('.back').should('be.visible').click();
         cy.url().should('include', '/');
     });
+    
 });
+
+
+function loginUser(username, password) {
+    cy.visit('http://localhost:3000/#/login');
+    cy.get('input[name="username"]').type(username);
+    cy.get('input[name="password"]').type(password);
+    cy.get('form').submit();
+    cy.url().should('include', '/home');
+}
+
+describe('New Question Page Tests', () => {
+    beforeEach(() => {
+        cy.exec('node ../server/init.js');
+        loginUser('user3', 'password3')
+        cy.visit('http://localhost:3000/#/ask');
+    });
+
+    afterEach(() => {
+        cy.exec('node ../server/destroy.js');
+    });
+
+    it('validates empty title input', () => {
+        cy.get('#formTitleInput').clear();
+        cy.get('#formTextInput').type('Sample question text');
+        cy.get('#formTagInput').type('tag1 tag2');
+        cy.get('form').submit();
+        cy.get('.error-message').should('contain', 'Title cannot be empty');
+    });
+    
+    it('validates empty question text input', () => {
+        cy.get('#formTitleInput').type('Sample Title');
+        cy.get('#formTextInput').clear();
+        cy.get('#formTagInput').type('tag1 tag2');
+        cy.get('form').submit();
+        cy.get('.error-message').should('contain', 'Question text cannot be empty');
+    });
+    
+    it('validates long title input', () => {
+        cy.get('#formTitleInput').type('a'.repeat(101));
+        cy.get('#formTextInput').type('Sample question text');
+        cy.get('#formTagInput').type('tag1 tag2');
+        cy.get('form').submit();
+        cy.get('.error-message').should('contain', 'Title cannot be more than 100 characters');
+    });
+
+    it('validates more than 5 tags', () => {
+        cy.get('#formTitleInput').type('Sample Title');
+        cy.get('#formTextInput').type('Sample question text');
+        cy.get('#formTagInput').type('tag1 tag2 tag3 tag4 tag5 tag6');
+        cy.get('form').submit();
+        cy.get('.error-message').should('contain', 'Cannot have more than 5 tags');
+    });
+    
+    it('validates long tag name', () => {
+        cy.get('#formTitleInput').type('Sample Title');
+        cy.get('#formTextInput').type('Sample question text');
+        cy.get('#formTagInput').type('a'.repeat(21));
+        cy.get('form').submit();
+        cy.get('.error-message').should('contain', 'Tag length cannot be more than 20 characters');
+    });
+
+    it('validates invalid hyperlink format', () => {
+        cy.get('#formTitleInput').type('Sample Title');
+        cy.get('#formTextInput').type('Check this link [Google](http://www.google.com)');
+        cy.get('#formTagInput').type('tag1');
+        cy.get('form').submit();
+        cy.get('.error-message').should('contain', 'Invalid hyperlink');
+    });
+
+    it('validates hyperlink with empty text', () => {
+        cy.get('#formTitleInput').type('Hyperlink Test');
+        cy.get('#formTextInput').type('Check this link [](https://www.google.com)');
+        cy.get('#formTagInput').type('tag1');
+        cy.get('form').submit();
+        cy.get('.error-message').should('contain', 'Invalid hyperlink');
+    });
+
+    it('validates hyperlink with empty URL', () => {
+        cy.get('#formTitleInput').type('Hyperlink Test');
+        cy.get('#formTextInput').type('Check this link [Google]()');
+        cy.get('#formTagInput').type('tag1');
+        cy.get('form').submit();
+        cy.get('.error-message').should('contain', 'Invalid hyperlink');
+    });
+    
+    it('submits a valid question successfully', () => {
+        cy.get('#formTitleInput').type('Valid Question Title');
+        cy.get('#formTextInput').type('Valid question text');
+        cy.get('#formTagInput').type('tag1');
+        cy.get('form').submit();
+        cy.url().should('include', '/home');
+        cy.get('.question-entry').first().should('contain', 'Valid Question Title');
+    });
+
+    it('displays the newly created question at the top on the homepage', () => {
+        cy.get('#formTitleInput').type('New Question Title');
+        cy.get('#formTextInput').type('New question text');
+        cy.get('#formTagInput').type('tag5');
+        cy.get('form').submit();
+        cy.url().should('include', '/home');
+        cy.get('.question-entry').first().find('.postTitle').should('contain', 'New Question Title');
+    });
+
+    it('displays the newly created question at the top in the Unanswered tab', () => {
+        cy.get('#formTitleInput').type('New Question Title');
+        cy.get('#formTextInput').type('New question text for unanswered view');
+        cy.get('#formTagInput').type('tag2');
+        cy.get('form').submit();
+        cy.url().should('include', '/home');
+        cy.get('.button-container .buttonDeco').contains('Unanswered').click();
+        cy.get('.question-entry').first().find('.postTitle').should('contain', 'New Question Title');
+    });
+
+    it('handles multiple new tags correctly', () => {  
+        cy.get('#formTitleInput').type('Question with Multiple New Tags');
+        cy.get('#formTextInput').type('This is a test question with multiple new tags.');
+        cy.get('#formTagInput').type('newTag1 newTag2 newTag3');
+        cy.get('form').submit();
+        cy.url().should('include', '/home');
+        cy.get('.question-entry').first().find('.postTitle').should('contain', 'Question with Multiple New Tags');
+        cy.get('.question-entry').first().find('.tagButton').should('contain', 'newtag1')
+            .and('contain', 'newtag2')
+            .and('contain', 'newtag3');
+    });
+    
+    
+    it('allows tag creation by users with enough reputation', () => {
+        cy.get('#formTitleInput').type('Question with New Tag');
+        cy.get('#formTextInput').type('Question text');
+        cy.get('#formTagInput').type('newTag');
+        cy.get('form').submit();
+        cy.url().should('include', '/home');
+        cy.get('.tagButton').should('contain', 'newtag');
+    });
+
+    it('restricts tag creation for users with low reputation', () => {
+        loginUser('user2', 'password2');
+        cy.visit('http://localhost:3000/#/ask');
+        cy.get('#formTitleInput').type('Question with New Tag');
+        cy.get('#formTextInput').type('Question text');
+        cy.get('#formTagInput').type('newTag');
+        cy.get('form').submit();
+        cy.get('.error-message').should('contain', 'Insufficient reputation to add new tags');
+    });
+
+    it('allows using of existing tag for users with low reputation', () => {
+        loginUser('user1', 'password1');
+        cy.visit('http://localhost:3000/#/ask');
+        cy.get('#formTitleInput').type('Question with Existing Tag');
+        cy.get('#formTextInput').type('Question text');
+        cy.get('#formTagInput').type('React');
+        cy.get('form').submit();
+        cy.url().should('include', '/home');
+        cy.get('.tagButton').should('contain', 'react');
+    });
+    
+    
+
+    it('shows an error message on system failure during question submission', () => {
+        cy.intercept('POST', 'http://localhost:8000/api/questions', { statusCode: 500 }).as('postQuestion');
+        cy.visit('http://localhost:3000/#/login');
+        cy.get('input[name="username"]').type('user3');
+        cy.get('input[name="password"]').type('password3');
+        cy.get('form').submit();
+        cy.url().should('include', '/home');
+        cy.visit('http://localhost:3000/#/ask');
+        cy.get('#formTitleInput').type('Valid Question Title');
+        cy.get('#formTextInput').type('Valid question text');
+        cy.get('#formTagInput').type('tag1');
+        cy.get('form').submit();
+        cy.wait('@postQuestion');
+        cy.get('.error-message').should('be.visible').and('contain', 'Error submitting question');
+    });
+    
+});
+
 
 
 

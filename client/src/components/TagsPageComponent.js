@@ -38,7 +38,14 @@ export default function TagsPageComponent() {
     };
 
     if (isLoading) return <p>Loading...</p>;
-    if (error) return <p>Error loading data!</p>;
+    if (error) {
+        return (
+            <div>
+                <p className="error-message">{error}</p>
+                <button className="back" onClick={() => navigate('/')}>Back to Welcome Page</button>
+            </div>
+        );
+    }
 
     return (
         <div>

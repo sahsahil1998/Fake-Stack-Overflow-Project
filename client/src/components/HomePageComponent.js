@@ -16,6 +16,7 @@ const HomePageComponent = ({ query }) => {
     const [viewType, setViewType] = useState('newest'); // Default view type
     const [isAuthenticated, setIsAuthenticated] = useState(false); // Added state to track authentication
     const navigate = useNavigate();
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         // Fetch user session status on component mount
@@ -52,6 +53,7 @@ const HomePageComponent = ({ query }) => {
                 console.error('Error fetching questions:', error);
                 setNoQuestionsFound(true);
                 setTotalQuestions(0);
+                setError('An error occurred while fetching questions. Please try again.');
             });
     }, [query, viewType, currentPage]);
 
@@ -130,6 +132,13 @@ const HomePageComponent = ({ query }) => {
 // Render function for the home page
 return (
     <div className="main-content" id="homeDiv">
+        {/* Display error message if there's an error */}
+        {error && (
+                <div className="error-container">
+                    <p className="error-message">{error}</p>
+                    <button className="back" onClick={() => navigate('/')}>Back to Welcome Page</button>
+                </div>
+            )}
         {/* Section displaying total questions and ask question button */}
         <div className='main-top'>
             <h1>All Questions</h1>
