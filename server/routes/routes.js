@@ -83,7 +83,7 @@ router.get('/search', async (req, res) => {
     try {
         // Extract complete tags from the query
         const tagMatches = query.match(/\[([^\]]+)\]/g) || [];
-        const tagsToSearch = tagMatches.map(match => match.slice(1, -1).trim());
+        const tagsToSearch = tagMatches.map(match => new RegExp('^' + match.slice(1, -1).trim() + '$', 'i'));
 
         // Removing tag syntax from query for text search
         const nonTagQuery = query.replace(/\[([^\]]+)\]/g, '').trim();

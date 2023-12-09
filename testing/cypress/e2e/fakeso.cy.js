@@ -570,8 +570,8 @@ describe('Search Functionality Tests', () => {
     });
 
     it('searches and displays results for combined text and tag match', () => {
-        cy.get('.searchBar').type('best practices [MongoDB]{enter}');
-        cy.url().should('include', '/search?query=best%20practices%20[MongoDB]');
+        cy.get('.searchBar').type('best practices [mongoDB]{enter}');
+        cy.url().should('include', '/search?query=best%20practices%20[mongoDB]');
         cy.get('.questionContainer .question-entry').should('have.length', 2);
         cy.get('.questionContainer .question-entry').first().find('.postTitle a').should('contain', 'Node.js Best Practices');
     });
@@ -635,7 +635,7 @@ describe('Search Functionality Tests', () => {
     };
 
     testPaginationForSearch('JavaScript', 'Newest');
-    testPaginationForSearch('[React]', 'Active', 'React State Management');
+    testPaginationForSearch('[react]', 'Active', 'React State Management');
     testPaginationForSearch('best practices [MongoDB]', 'Unanswered');
 
     it('allows a registered user to search for "React"' , () =>{
@@ -652,13 +652,13 @@ describe('Search Functionality Tests', () => {
     });
     
 
-    it('guest user search for "React" matches registered user' , () =>{
+    it('guest user search for "react" matches registered user' , () =>{
         // Login the user before test
         cy.visit('http://localhost:3000/');
         cy.get('.welcome-button').contains('Continue as Guest').click();
         cy.visit('http://localhost:3000/#/search');
-        cy.get('.searchBar').type('React{enter}');
-        cy.url().should('include', '/search?query=React');
+        cy.get('.searchBar').type('react{enter}');
+        cy.url().should('include', '/search?query=react');
         cy.get('.questionContainer .question-entry').should('not.have.length', 0);
         cy.get('.questionContainer .question-entry').first().find('.postTitle a').should('contain', 'React');
     });
@@ -674,6 +674,104 @@ describe('Search Functionality Tests', () => {
         cy.url().should('include', '/');
     });
 });
+
+describe('All Tags Page Tests', () => {
+    beforeEach(() => {
+        cy.exec('node ../server/init.js');
+        cy.visit('http://localhost:3000/#/tags');
+    });
+
+    afterEach(() => {
+        cy.exec('node ../server/destroy.js');
+    });
+
+    it('displays all tags with question counts', () => {
+        cy.get('.tagsContainer .tagNode').should('not.have.length', 0);
+        cy.get('.tagsContainer .tagNode').each(($el) => {
+            cy.wrap($el).find('span').should('contain', 'questions');
+        });
+    });
+
+    it('navigates to the correct tag page when a tag is clicked', () => {
+        cy.get('.tagsContainer .tagNode').first().click();
+        cy.url().should('include', '/tags/'); // Assuming each tag has a unique route like '/tags/{tagId}'
+    });
+
+    it('ensures the Ask a Question button is disabled for guest users', () => {
+        cy.get('.askQuestionButton').should('be.disabled');
+    });
+
+    it('allows a registered user to click the Ask a Question button', () => {
+        // Login the user before the test
+        cy.visit('http://localhost:3000/#/login');
+        cy.get('input[name="username"]').type('user3');
+        cy.get('input[name="password"]').type('password3');
+        cy.get('form').submit();
+        cy.visit('http://localhost:3000/#/tags');
+        cy.get('.askQuestionButton').should('not.be.disabled').click();
+        cy.url().should('include', '/ask');
+    });
+
+    // Add tests for error handling
+    it('shows an error message and a way to navigate back on system failure', () => {
+        // Intercepting the API call and forcing it to return an error
+        cy.intercept('GET', 'http://localhost:8000/api/tags', { statusCode: 500 });
+
+        // Reload the page to trigger the intercepted API call
+        cy.visit('http://localhost:3000/#/tags');
+        cy.get('.error-message').should('be.visible').and('contain', 'Error loading tags');
+        cy.get('.back').should('be.visible').click();
+        cy.url().should('include', '/');
+    });
+});
+
+describe('Question Tags Page Tests', () => {
+    beforeEach(() => {
+        cy.exec('node ../server/init.js');
+        cy.visit('http://localhost:3000/#/tags/t1');
+    });
+
+    afterEach(() => {
+        cy.exec('node ../server/destroy.js');
+    });
+
+    it('displays questions associated with the tag', () => {
+        cy.get('.questionsList .question-entry').should('not.have.length', 0);
+        cy.get('.questionsList .question-entry').each(($el) => {
+            cy.wrap($el).find('.postTitle').should('exist');
+            cy.wrap($el).find('footer').should('contain', 'Asked by:');
+        });
+    });
+
+    it('navigates to the correct question page when a question is clicked', () => {
+        cy.get('.questionsList .question-entry').first().click();
+        cy.url().should('include', '/questions/'); // Assuming each question has a unique route like '/questions/{questionId}'
+    });
+
+    it('displays questions in newest order', () => {
+        let previousDate = new Date();
+        cy.get('.questionsList .question-entry').each(($el) => {
+            const dateText = $el.find('footer').text().match(/Asked: (.+)$/)[1];
+            const questionDate = new Date(dateText);
+            expect(questionDate).to.be.at.most(previousDate);
+            previousDate = questionDate;
+        });
+    });
+
+    // Add tests for error handling
+    it('shows an error message and a way to navigate back on system failure', () => {
+        // Intercepting the API call and forcing it to return an error
+        cy.intercept('GET', `http://localhost:8000/tags/t1/questions`, { statusCode: 500 });
+
+        // Reload the page to trigger the intercepted API call
+        cy.visit('http://localhost:3000/#/tags/t1');
+        cy.get('.error-message').should('be.visible').and('contain', 'Error loading questions');
+        cy.get('.back').should('be.visible').click();
+        cy.url().should('include', '/');
+    });
+});
+
+
 
 
 
