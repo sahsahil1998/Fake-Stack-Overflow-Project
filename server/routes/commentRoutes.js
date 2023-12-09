@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const Comment = require('../models/comments');
 const User = require('../models/users');
+const Question = require('../models/questions');
+const Answer = require('../models/answers');
 
 // Route to get comments for a question
 router.get('/question/:questionId', async (req, res) => {
@@ -15,11 +17,14 @@ router.get('/question/:questionId', async (req, res) => {
             .limit(limit)
             .skip((page - 1) * limit);
 
-        res.json({ comments });
+        const totalCount = await Comment.countDocuments({ onQuestion: questionId });
+
+        res.json({ comments, totalCount });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 });
+
 
 // Route to get comments for an answer
 router.get('/answer/:answerId', async (req, res) => {
@@ -33,7 +38,9 @@ router.get('/answer/:answerId', async (req, res) => {
             .limit(limit)
             .skip((page - 1) * limit);
 
-        res.json({ comments });
+        const totalCount = await Comment.countDocuments({ onAnswer: answerId });
+
+        res.json({ comments, totalCount });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -71,24 +78,44 @@ router.post('/', async (req, res) => {
 
 // Route to upvote a comment
 router.put('/upvote/:commentId', async (req, res) => {
-    console.log("Upvote route hit for comment:", req.params.commentId);
     try {
         const { commentId } = req.params;
 
-        // Find the comment and increment the upvotes
-        const updatedComment = await Comment.findByIdAndUpdate(
-            commentId,
-            { $inc: { upvotes: 1 } }, // Increment upvotes by 1
-            { new: true } // Return the updated document
-        );
+        // Find the comment and increment its upvotes
+        const updatedComment = await Comment.findById(commentId);
 
         if (!updatedComment) {
             return res.status(404).json({ message: "Comment not found" });
         }
 
+        updatedComment.upvotes += 1;
+        await updatedComment.save();
+
+        let questionId;
+
+        // Check if the comment is on a question or an answer
+        if (updatedComment.onQuestion) {
+            questionId = updatedComment.onQuestion;
+        } else if (updatedComment.onAnswer) {
+            // Find the answer to get the question ID
+            const answer = await Answer.findById(updatedComment.onAnswer);
+            if (answer) {
+                questionId = answer.question;
+            }
+        }
+
+        if (questionId) {
+            // Update the last_answered_time of the question
+            await Question.findByIdAndUpdate(
+                questionId,
+                { last_answered_time: new Date() },
+                { new: true }
+            );
+        }
+
         res.json(updatedComment);
     } catch (error) {
-        console.error("Error in upvoting:", error);
+        console.error("Error in upvoting comment:", error);
         res.status(500).json({ message: error.message });
     }
 });

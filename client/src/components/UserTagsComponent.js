@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import '../stylesheets/userTags.css';
 
 const UserTagsComponent = () => {
     const [tags, setTags] = useState([]);
@@ -102,10 +103,10 @@ const UserTagsComponent = () => {
     }
 
     return (
-        <div>
+        <div className="user-tags-container">
             <button onClick={() => navigate('/userprofile')} className="backButton">Back to Profile</button>
             <h1>Your Created Tags:</h1>
-            <ul>
+            <ul className="user-tags-list">
                 {tags.map(tag => (
                     <li key={tag._id}>
                         {editingTagId === tag._id ? (
@@ -129,6 +130,7 @@ const UserTagsComponent = () => {
             </ul>
         </div>
     );
+    
 };
 
 export default UserTagsComponent;

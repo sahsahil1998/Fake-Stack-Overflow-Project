@@ -6,6 +6,7 @@ const CommentsComponent = ({ parentId, type }) => {
     const [comments, setComments] = useState([]);
     const [newComment, setNewComment] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
+    const [totalComments, setTotalComments] = useState(0);
     const [error, setError] = useState(null);
     const [user, setUser] = useState(null);
     const commentsPerPage = 3;
@@ -35,10 +36,21 @@ const CommentsComponent = ({ parentId, type }) => {
                         : `http://localhost:8000/comments/answer/${parentId}?page=${currentPage}&limit=${commentsPerPage}`;
             const response = await axios.get(url);
             setComments(response.data.comments);
+            setTotalComments(response.data.totalCount); // Update total comments
             setError(null);
         } catch (err) {
             setError("Failed to load comments.");
         }
+    };
+
+    const totalPages = Math.ceil(totalComments / commentsPerPage);
+
+    const handlePrev = () => {
+        setCurrentPage(prev => Math.max(1, prev - 1));
+    };
+
+    const handleNext = () => {
+        setCurrentPage(prev => (prev < totalPages) ? prev + 1 : prev);
     };
 
     const handleCommentSubmit = async (e) => {
@@ -91,6 +103,8 @@ const CommentsComponent = ({ parentId, type }) => {
         ));
     };
 
+    const isNextDisabled = currentPage === totalPages || comments.length === 0;
+
     return (
         <div>
             {error && <p>{error}</p>}
@@ -106,8 +120,8 @@ const CommentsComponent = ({ parentId, type }) => {
                 </form>
             )}
             {renderComments()}
-            <button onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} disabled={currentPage === 1}>Prev</button>
-            <button onClick={() => setCurrentPage(prev => prev + 1)}>Next</button>
+            <button onClick={handlePrev} disabled={currentPage === 1}>Prev</button>
+            <button onClick={handleNext} disabled={isNextDisabled}>Next</button>
         </div>
     );
 };

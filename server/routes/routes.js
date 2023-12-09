@@ -22,7 +22,6 @@ router.get('/', async (req, res) => {
             sortCriteria = { last_answered_time: -1 };
             break;
         case 'unanswered':
-            // Assuming that answers are stored as an array in questions
             sortCriteria = { ask_date_time: -1 };
             filterCriteria = { answers: { $size: 0 } }; // Filter for questions with no answers
             break;
@@ -154,6 +153,7 @@ router.get("/:qid", async (req, res) => {
 
 // Increment view count
 router.put("/increaseviewcount/:qid", async (req, res) => {
+    console.log("Increasing view")
     try {
         const update = await Question.findOneAndUpdate({ qid: req.params.qid }, {$inc: { views: 1 }}, { new: true });
         res.json(update);
@@ -250,33 +250,31 @@ router.post('/:qid/answers', async (req, res) => {
 });
 
 router.post('/:qid/:voteType', async (req, res) => {
-
-     
     try {
         const { qid, voteType } = req.params; 
         const updateField = voteType === 'upvote' ? 'upvotes' : 'downvotes';
-        const updatedQuestion = await Question.findOne(
-            { qid: qid }
+
+        // Find the question and update its vote count
+        const updatedQuestion = await Question.findOneAndUpdate(
+            { qid: qid },
+            { 
+                $inc: { [updateField]: 1 },
+                $set: { last_answered_time: new Date() }
+            },
+            { new: true }
         );
 
-        console.log(qid);
-        console.log(updatedQuestion);
-        console.log(updateField);
+        if (!updatedQuestion) {
+            return res.status(404).json({ message: 'Question not found' });
+        }
 
-        // Update the upvotes or downvotes field
-        updatedQuestion[updateField] += 1;
-
-        // Save the updated answer document
-        await updatedQuestion.save();
-
-
-     
         res.status(200).json(updatedQuestion);    
-    
     } catch (error) {
+        console.error('Error in voting on question:', error);
         res.status(500).json({ message: error.message });
     }
 });
+
 
 //Route for user to repost question- makes active
 router.post('/:questionId', async (req, res) => {
@@ -290,6 +288,9 @@ router.post('/:questionId', async (req, res) => {
             return res.status(404).json({ message: 'Question not found' });
         }
         const { newTitle, newText } = req.body;
+        // Use existing upvotes and downvotes from originalQuestion
+        const upvotes = originalQuestion.upvotes;
+        const downvotes = originalQuestion.downvotes;
         // Update the question
         const updatedQuestion = await Question.findByIdAndUpdate(
             originalQuestion._id, 
