@@ -6,19 +6,25 @@ const app = express();
 const port = 8000;
 const cors = require("cors");
 const axios = require('axios');
+const DataBaseService = require('./middleware/databaseservice');
+
+
+const CONNECTION_STRING = 'mongodb://127.0.0.1:27017/fake_so';
+const db = new DataBaseService(CONNECTION_STRING);
+db.connect();
 
 
 // MongoDB connection
-mongoose.connect('mongodb://127.0.0.1:27017/fake_so', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-});
-const db = mongoose.connection;
+// mongoose.connect('mongodb://127.0.0.1:27017/fake_so', {
+//     useNewUrlParser: true,
+//     useUnifiedTopology: true,
+// });
+// const db = mongoose.connection;
 
-db.on('error', console.error.bind(console, 'MongoDB connection error:'));
-db.once('open', () => {
-    console.log('Connected to MongoDB');
-});
+// db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+// db.once('open', () => {
+//     console.log('Connected to MongoDB');
+// });
 app.use(cors({
     origin: 'http://localhost:3000',
     credentials: true
