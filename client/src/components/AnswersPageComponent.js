@@ -231,7 +231,9 @@ const AnswersPageComponent = () => {
 
                     <h3>Answers:</h3>
                     <div className="answers-section">
-                        {currentAnswers.length > 0 ? currentAnswers.map(answer => (
+                        {currentAnswers.length > 0 ? currentAnswers
+                        .sort((a, b) => new Date(b.ans_date_time) - new Date(a.ans_date_time))
+                        .map(answer => (
                             <div key={answer.aid} className="answer-container">
                                 {question.asked_by._id === user?.id && !answer.isAccepted && (
                                     <button onClick={() => handleAcceptAnswer(answer.aid)}>Accept Answer</button>
