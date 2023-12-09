@@ -79,10 +79,15 @@ router.post('/', async (req, res) => {
 // Route to upvote a comment
 router.put('/upvote/:commentId', async (req, res) => {
     try {
+      
+        console.log(req.params);
+        
         const { commentId } = req.params;
+       
 
         // Find the comment and increment its upvotes
         const updatedComment = await Comment.findById(commentId);
+       
 
         if (!updatedComment) {
             return res.status(404).json({ message: "Comment not found" });
@@ -91,23 +96,25 @@ router.put('/upvote/:commentId', async (req, res) => {
         updatedComment.upvotes += 1;
         await updatedComment.save();
 
-        let questionId;
+        let Id;
 
         // Check if the comment is on a question or an answer
         if (updatedComment.onQuestion) {
-            questionId = updatedComment.onQuestion;
+            Id = updatedComment.onQuestion;
         } else if (updatedComment.onAnswer) {
             // Find the answer to get the question ID
-            const answer = await Answer.findById(updatedComment.onAnswer);
+            console.log(updatedComment.onAnswer);
+            const answer = await Answer.findOne({aid: updatedComment.onAnswer});
+           
             if (answer) {
-                questionId = answer.question;
+                Id = answer.question;
             }
         }
 
-        if (questionId) {
+        if (Id) {
             // Update the last_answered_time of the question
             await Question.findByIdAndUpdate(
-                questionId,
+                Id,
                 { last_answered_time: new Date() },
                 { new: true }
             );
