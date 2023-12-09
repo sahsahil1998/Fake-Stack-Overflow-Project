@@ -198,7 +198,7 @@ const AnswersPageComponent = () => {
             {question ? (
                 <>
                     <div id="answersHeader">
-                        <span>{question.views} Views </span>
+                        <span>{question.views} views </span>
                         <span>{question.answers.length} answers</span>
                         <h2>{question.title}</h2>
                         <button onClick={() => navigate('/ask')} id="askQuestionButton" className="mainDivAskButton" disabled={!isAuthenticated}>Ask a Question</button>
@@ -231,7 +231,9 @@ const AnswersPageComponent = () => {
 
                     <h3>Answers:</h3>
                     <div className="answers-section">
-                        {currentAnswers.length > 0 ? currentAnswers.map(answer => (
+                        {currentAnswers.length > 0 ? currentAnswers
+                        .sort((a, b) => new Date(b.ans_date_time) - new Date(a.ans_date_time))
+                        .map(answer => (
                             <div key={answer.aid} className="answer-container">
                                 {question.asked_by._id === user?.id && !answer.isAccepted && (
                                     <button onClick={() => handleAcceptAnswer(answer.aid)}>Accept Answer</button>
