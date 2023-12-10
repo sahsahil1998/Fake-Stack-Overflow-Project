@@ -250,16 +250,20 @@ async function createInitialData() {
             new Comment({
                 text: 'This is a great answer!',
                 commented_by: users[0]._id,
+
                 onQuestion: questions[0]._id,
                 comment_date_time: new Date('2023-01-02T14:00:00Z'),
                 upvotes: 1
+
             }),
             new Comment({
                 text: 'I have a follow-up question.',
                 commented_by: users[1]._id,
+
                 onAnswer: answers[0]._id,
                 comment_date_time: new Date('2023-01-02T15:00:00Z'),
                 upvotes: 2
+
             }),
             new Comment({
                 text: 'Very informative, thanks!',

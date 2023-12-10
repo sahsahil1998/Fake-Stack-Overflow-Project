@@ -1,10 +1,10 @@
 .edit-answer-container {
-    padding: 20px;
+    padding: 80px;
     background-color: #f8f8f8;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     max-width: 800px;
-    margin: 20px auto;
+    margin: 50px 100px;
     text-align: center;
 }
 
@@ -24,7 +24,7 @@
 }
 
 .edit-answer-container button {
-    background-color: #4a90e2;
+    background-color: #e24a89;
     color: white;
     padding: 10px 20px;
     border: none;
@@ -34,7 +34,7 @@
 }
 
 .edit-answer-container button:hover {
-    background-color: #357ab8;
+    background-color: #dfc7da;
 }
 
 .edit-answer-container button:disabled {
@@ -43,7 +43,7 @@
 }
 
 .backButton {
-    background-color: #4a90e2;
+    background-color: #e24a89;
     color: white;
     padding: 10px 20px;
     border: none;
@@ -53,5 +53,5 @@
 }
 
 .backButton:hover {
-    background-color: #357ab8;
+    background-color: #dfc7da;
 }

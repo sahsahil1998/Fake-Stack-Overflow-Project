@@ -73,7 +73,7 @@
 
 
 button[id^="upvote_"], button[id^="downvote_"] {
-    background-color: rgb(199, 199, 237);
+    background-color: rgb(199, 199, 237) !important;
     color: black;
     border: none;
     padding: 5px 10px;
@@ -84,9 +84,9 @@ button[id^="upvote_"]:hover, button[id^="downvote_"]:hover {
     background-color: rgb(98, 98, 203);
 }
 
-button {
-    background-color: #0074d9;
-    color: #fff;
+.vote {
+    background-color: #bbdef7;
+    color: #39739d;
     padding: 10px 20px;
     border: none;
     border-radius: 5px;
@@ -95,8 +95,8 @@ button {
     margin-top: 20px;
 }
 
-button:hover {
-    background-color: #0056a1;
+.vote:hover {
+    background-color: #e1ecf4;
 }
 
 

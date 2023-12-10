@@ -249,8 +249,8 @@ const AnswersPageComponent = () => {
                                 <div className="vote-buttons">
                                     {isAuthenticated ? (
                                         <>
-                                            <button onClick={() => handleVote(answer.aid, 'upvote')}>Upvote {answer.upvotes}</button>
-                                            <button onClick={() => handleVote(answer.aid, 'downvote')}>Downvote {answer.downvotes}</button>
+                                            <button onClick={() => handleVote(answer.aid, 'upvote')} className='vote'>Upvote {answer.upvotes}</button>
+                                            <button onClick={() => handleVote(answer.aid, 'downvote')} className='vote'>Downvote {answer.downvotes}</button>
                                         </>
                                     ) : (
                                         <>
