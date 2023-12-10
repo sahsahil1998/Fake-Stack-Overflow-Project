@@ -1582,6 +1582,93 @@ describe('New Answer Page Tests as Registered User', () => {
     
 });
 
+describe.only('User Profile Page Tests', () => {
+    beforeEach(() => {
+        cy.exec('node ../server/init.js');
+        cy.login('user1', 'password1');
+        cy.visit('/#/userprofile');
+    });
+
+    afterEach(() => {
+        cy.exec('node ../server/destroy.js');
+    });
+
+    it('displays user information correctly', () => {
+        cy.get('.userDetails').should('be.visible');
+        cy.get('.userDetails').should('contain', 'Member for:');
+        cy.get('.userDetails').should('contain', 'Reputation Points: 50');
+    });
+
+    it('navigates to the correct pages from menu links', () => {
+        cy.contains('View All Your Questions').click();
+        cy.url().should('include', '/#/userprofile/questions');
+        cy.visit('/#/userprofile');
+        cy.contains('View All Your Tags').click();
+        cy.url().should('include', '/userprofile/tags');
+        cy.visit('/#/userprofile');
+        cy.contains('View All Your Answers').click();
+        cy.url().should('include', '/userprofile/answers');
+    });
+
+    it('displays user asked questions correctly', () => {
+        cy.contains('View All Your Questions').click();
+        cy.get('.questions-list').should('be.visible');
+        cy.get('.questions-list li').each(($li) => {
+            cy.wrap($li).find('a').should('have.attr', 'href').and('include', '/questions/details/');
+        });
+    });
+
+    it('allows user to edit and repost a question', () => {
+        cy.contains('View All Your Questions').click();
+        cy.get('.questions-list').should('be.visible');
+        cy.get('.questions-list li').first().click();
+        cy.get('input.question-input').clear().type('Updated Question Title');
+        cy.get('textarea.question-textarea').clear().type('Updated question text');
+        cy.get('button.editButton').click();
+        cy.contains('Question reposted successfully').should('be.visible');
+        cy.url().should('include', '/userprofile/questions');
+        // Add more assertions to verify the updated question
+    });
+
+    it('allows user to delete a question', () => {
+        cy.contains('View All Your Questions').click();
+        cy.get('.questions-list').should('be.visible');
+        cy.get('.questions-list li').first().click();
+        cy.get('button.deleteButton').click();
+        cy.on('window:confirm', () => true);
+        cy.contains('Question deleted successfully').should('be.visible');
+        cy.url().should('include', '/userprofile/questions');
+        // Add assertions to verify the question is deleted
+    });
+
+    it('reposting does not change original posting date', () => {
+        // Note the original posting date
+        // Edit and repost the question
+        // Verify the original posting date remains unchanged
+    });
+
+    it('reposting a question marks it as active', () => {
+        // Repost a question
+        // Navigate to the home page or active questions list
+        // Confirm the reposted question appears at the top or is marked as active
+    });
+
+    // Add tests for viewing, editing, and deleting questions
+    // Ensure to test that reposting a question does not change the original date
+    // and makes the question active
+    // Add tests for viewing, editing, and deleting tags
+    // Ensure to test that editing a tag’s name reflects in all associated questions
+    // and that deleting a tag removes it from all associated questions
+    // Test restrictions on editing/deleting tags used by other users
+    // Add tests for viewing, editing, and deleting answers
+    // Ensure to test that editing an answer does not change its original posting date
+    // and that deleting an answer also deletes its votes and comments
+    // Test that reposting or deleting an answer makes the corresponding question active
+    // Add tests to verify that appropriate error messages are displayed
+    // when actions fail or invalid operations are attempted
+    
+});
+
 
 
 

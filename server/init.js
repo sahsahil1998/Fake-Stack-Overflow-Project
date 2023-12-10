@@ -145,7 +145,7 @@ async function createInitialData() {
             // ... potentially more questions ...
         ];
 
-        const savedQuestions = await Promise.all(questions.map(question => question.save()));
+        await Promise.all(questions.map(question => question.save()));
 
         // Create initial answers
         const answers = [
@@ -233,79 +233,80 @@ async function createInitialData() {
             // ... potentially more answers ...
         ];
 
-        const savedAnswers = await Promise.all(answers.map(answer => answer.save()));
+        await Promise.all(answers.map(answer => answer.save()));
 
         // Update questions with answer count and last answered time
-        for (const answer of savedAnswers) {
-            await Question.findByIdAndUpdate(answer.question, {
+        for (const answer of answers) {
+            const savedAnswer = await answer.save();
+            await Question.findByIdAndUpdate(savedAnswer.question, {
                 $inc: { answerCount: 1 },
-                $push: { answers: answer._id },
-                $set: { last_answered_time: answer.ans_date_time }
+                $push: { answers: savedAnswer._id },
+                $set: { last_answered_time: savedAnswer.ans_date_time }
             }, { new: true });
         }
 
         // Create initial comments
         const comments = [
             new Comment({
-                text: 'This is great!',
+                text: 'This is a great answer!',
                 commented_by: users[0]._id,
-                onQuestion: savedQuestions[4]._id,
+                onQuestion: questions[0]._id,
                 comment_date_time: new Date('2023-01-02T14:00:00Z'),
                 upvotes: 1
             }),
             new Comment({
                 text: 'I have a follow-up question.',
                 commented_by: users[1]._id,
-                onAnswer: savedAnswers[2]._id,
+                onAnswer: answers[0]._id,
                 comment_date_time: new Date('2023-01-02T15:00:00Z'),
                 upvotes: 2
             }),
             new Comment({
                 text: 'Very informative, thanks!',
                 commented_by: users[2]._id,
-                onQuestion: savedQuestions[4]._id,
+                onQuestion: questions[0]._id,
                 comment_date_time: new Date('2023-01-02T16:00:00Z'),
                 upvotes: 3
             }),
             new Comment({
                 text: 'Could you provide more examples?',
                 commented_by: users[3]._id,
-                onAnswer: savedAnswers[1]._id,
+                onAnswer: answers[1]._id,
                 comment_date_time: new Date('2023-01-02T17:00:00Z'),
                 upvotes: 4
             }),
             new Comment({
                 text: 'This answer cleared my doubts.',
                 commented_by: users[4]._id,
-                onAnswer: savedAnswers[2]._id,
+                onAnswer: answers[1]._id,
                 comment_date_time: new Date('2023-01-02T18:00:00Z'),
                 upvotes: 2
             }),
             new Comment({
                 text: 'Can you elaborate on this point?',
                 commented_by: users[2]._id,
-                onAnswer: savedAnswers[2]._id,
+                onAnswer: answers[1]._id,
                 comment_date_time: new Date('2023-01-02T19:00:00Z'),
                 upvotes: 2
             }),
             new Comment({
                 text: 'This is exactly what I was looking for!',
                 commented_by: users[2]._id,
-                onQuestion: savedQuestions[4]._id,
+                onQuestion: questions[0]._id,
                 comment_date_time: new Date('2023-01-02T20:00:00Z'),
                 upvotes: 0
             }),
             new Comment({
                 text: 'Good question.',
                 commented_by: users[0]._id,
-                onQuestion: savedQuestions[4]._id,
+                onQuestion: questions[0]._id,
                 comment_date_time: new Date('2023-01-02T20:00:00Z'),
                 upvotes: 0
             }),
             new Comment({
                 text: 'New comment!',
                 commented_by: users[0]._id,
-                onAnswer: savedAnswers[2]._id,
+                onAnswer: answers[1]._id,
                 comment_date_time: new Date('2023-01-02T20:00:00Z'),
                 upvotes: 1
             }),
@@ -313,8 +314,9 @@ async function createInitialData() {
         ];
 
         await Promise.all(comments.map(comment => comment.save()));
-         // Update questions and answers with comments
-         for (const comment of comments) {
+
+        // Update questions and answers with comments
+        for (const comment of comments) {
             const savedComment = await comment.save();
 
             if (savedComment.onQuestion) {
@@ -329,7 +331,6 @@ async function createInitialData() {
                 }, { new: true });
             }
         }
-        
 
         console.log('Initial data created successfully');
     } catch (error) {
