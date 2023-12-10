@@ -1582,7 +1582,7 @@ describe('New Answer Page Tests as Registered User', () => {
     
 });
 
-describe.only('User Profile Page Tests', () => {
+describe('User Profile Page Tests', () => {
     beforeEach(() => {
         cy.exec('node ../server/init.js');
         cy.login('user1', 'password1');
@@ -1608,6 +1608,7 @@ describe.only('User Profile Page Tests', () => {
         cy.visit('/#/userprofile');
         cy.contains('View All Your Answers').click();
         cy.url().should('include', '/userprofile/answers');
+
     });
 
     it('displays user asked questions correctly', () => {
@@ -1625,9 +1626,11 @@ describe.only('User Profile Page Tests', () => {
         cy.get('input.question-input').clear().type('Updated Question Title');
         cy.get('textarea.question-textarea').clear().type('Updated question text');
         cy.get('button.editButton').click();
-        cy.contains('Question reposted successfully').should('be.visible');
+        cy.on('window:alert', (str) => {
+            expect(str).to.equal('Question reposted successfully');
+        });
         cy.url().should('include', '/userprofile/questions');
-        // Add more assertions to verify the updated question
+        cy.get('.questions-list li').first().contains('Updated Question Title')
     });
 
     it('allows user to delete a question', () => {
@@ -1636,36 +1639,190 @@ describe.only('User Profile Page Tests', () => {
         cy.get('.questions-list li').first().click();
         cy.get('button.deleteButton').click();
         cy.on('window:confirm', () => true);
-        cy.contains('Question deleted successfully').should('be.visible');
+        cy.on('window:alert', (str) => {
+            expect(str).to.equal('Question deleted successfully');
+        });
         cy.url().should('include', '/userprofile/questions');
-        // Add assertions to verify the question is deleted
+        cy.get('.questions-list li').first().contains('Introduction to Git and GitHub')
     });
 
     it('reposting does not change original posting date', () => {
-        // Note the original posting date
-        // Edit and repost the question
-        // Verify the original posting date remains unchanged
+        cy.contains('View All Your Questions').click();
+        cy.get('.questions-list').should('be.visible');
+        cy.get('.questions-list li').first().click();
+        cy.get('input.question-input').clear().type('Updated Question Title');
+        cy.get('textarea.question-textarea').clear().type('Updated question text');
+        cy.get('button.editButton').click();
+        cy.visit('/#/home');
+        navigateToQuestionAnswer('Updated Question Title');
+        cy.get('.questionMetadata').contains('Jan 1');
     });
+    
 
     it('reposting a question marks it as active', () => {
-        // Repost a question
-        // Navigate to the home page or active questions list
-        // Confirm the reposted question appears at the top or is marked as active
+        cy.contains('View All Your Questions').click();
+        cy.get('.questions-list').should('be.visible');
+        cy.get('.questions-list li').first().click();
+        cy.get('input.question-input').clear().type('Updated Question Title');
+        cy.get('textarea.question-textarea').clear().type('Updated question text');
+        cy.get('button.editButton').click();
+        cy.visit('/#/home');
+        cy.get('.button-container .buttonDeco').contains('Active').click();
+        cy.get('.questionContainer .question-entry').first().find('.postTitle a')
+          .should('contain', 'Updated Question Title');
     });
 
-    // Add tests for viewing, editing, and deleting questions
-    // Ensure to test that reposting a question does not change the original date
-    // and makes the question active
-    // Add tests for viewing, editing, and deleting tags
-    // Ensure to test that editing a tag’s name reflects in all associated questions
-    // and that deleting a tag removes it from all associated questions
-    // Test restrictions on editing/deleting tags used by other users
-    // Add tests for viewing, editing, and deleting answers
-    // Ensure to test that editing an answer does not change its original posting date
-    // and that deleting an answer also deletes its votes and comments
-    // Test that reposting or deleting an answer makes the corresponding question active
-    // Add tests to verify that appropriate error messages are displayed
-    // when actions fail or invalid operations are attempted
+    it('allows the user to view all tags created by them', () => {
+        cy.contains('View All Your Tags').click();
+        cy.url().should('include', '/userprofile/tags');
+        cy.get('.user-tags-list').should('be.visible');
+        cy.get('.user-tags-list li').contains('JavaScript');
+    });
+
+    it('allows the user to create a new tag', () => {
+        cy.visit('/#/ask');
+        cy.get('#formTitleInput').type('Question with New Tag');
+        cy.get('#formTextInput').type('Question text');
+        cy.get('#formTagInput').type('newtag');
+        cy.get('form').submit();
+        cy.visit('/#/userprofile/tags');
+        cy.get('.user-tags-list').should('contain', 'newtag');
+    });
+    
+    
+    it('allows the user to edit tag not used by others and verify change', () => {
+        cy.contains('View All Your Tags').click();
+        cy.url().should('include', '/userprofile/tags');
+        cy.get('.user-tags-list').contains('Git').parents('li').then($li => {
+            cy.wrap($li).find('button').contains('Edit').click();
+            cy.wrap($li).find('input[type="text"]').clear().type('Github');
+            cy.wrap($li).find('button').contains('Save').click();
+        });
+        cy.visit('http://localhost:3000/#/tags');
+        cy.get('.tagsContainer').should('contain', 'Github');
+    });
+    
+    
+    
+    it('allows the user to delete a tag not used by others and verify by checking the number of tags', () => {
+        cy.contains('View All Your Tags').click();
+        cy.url().should('include', '/userprofile/tags');
+        cy.get('.user-tags-list').contains('Git').parents('li').then($li => {
+            cy.wrap($li).find('button').contains('Delete').click();
+            cy.on('window:confirm', () => true);
+        });
+        cy.visit('http://localhost:3000/#/tags');
+        cy.get('.tagsContainer .tagNode').should('have.length', 5);
+    });
+    
+    
+
+    it('prevents editing a tag if it is used by other users', () => {
+        cy.contains('View All Your Tags').click();
+        cy.url().should('include', '/userprofile/tags');
+        
+        cy.get('.user-tags-list').contains('JavaScript').parents('li').then($li => {
+            cy.wrap($li).find('button').contains('Edit').click();
+            cy.wrap($li).find('input[type="text"]').clear().type('Attempted New Name');
+            cy.wrap($li).find('button').contains('Save').click();
+            cy.on('window:alert', (str) => {
+                expect(str).to.contain('Error updating tag');
+            });
+        });
+    });
+    
+
+    it('prevents deleting a tag if it is used by other users', () => {
+        cy.contains('View All Your Tags').click();
+        cy.url().should('include', '/userprofile/tags');
+        
+        cy.get('.user-tags-list').contains('JavaScript').parents('li').as('JavaScriptTag');
+        cy.get('@JavaScriptTag').find('button').contains('Delete').click();
+        cy.on('window:confirm', () => true);
+        cy.on('window:alert', (str) => {
+            expect(str).to.contain('Error deleting tag');
+        });
+    });
+    
+
+    it('displays a message when the user has no tags created', () => {
+        cy.login('user4', 'password4');
+        cy.visit('/#/userprofile');
+        cy.contains('View All Your Tags').click();
+        cy.url().should('include', '/userprofile/tags');
+        cy.get('p').should('contain', 'No tags created yet. You must have at least 50 reputation to create new tags!');
+    });
+    
+    
+    
+    it('allows the user to view all answers posted by them', () => {
+        cy.contains('View All Your Answers').click();
+        cy.url().should('include', '/userprofile/answers');
+        cy.get('.answers-list').should('be.visible');
+        cy.get('.answers-list li').each(($li) => {
+            cy.wrap($li).find('a').should('have.attr', 'href').and('include', '/userprofile/answers/edit/');
+            cy.wrap($li).invoke('text').should('match', /...$/);
+        });
+    });
+    
+    
+
+    it('allows the user to edit an answer', () => {
+        cy.visit('/#/userprofile/answers');
+        cy.get('.answers-list li').first().find('a').click();
+        cy.url().should('include', '/userprofile/answers/edit/');
+        cy.get('textarea').clear().type('Updated answer text');
+        cy.get('form').submit();
+        cy.on('window:alert', (str) => {
+            expect(str).to.equal('Answer updated successfully');
+        });
+        cy.url().should('include', '/userprofile/answers');
+        cy.get('.answers-list li').first().should('contain', 'Updated answer text');
+    });
+
+    it('allows the user to delete an answer', () => {
+        cy.visit('/#/userprofile/answers');
+        cy.get('.answers-list li').first().find('a').click();
+        cy.url().should('include', '/userprofile/answers/edit/');
+    
+        cy.get('button').contains('Delete Answer').click();
+        cy.on('window:confirm', () => true);
+        cy.on('window:alert', (str) => {
+            expect(str).to.equal('Answer deleted successfully');
+        });
+        cy.url().should('include', '/userprofile/answers');
+        cy.get('.answers-list li').should('not.contain', 'Updated answer text');
+    });
+    
+    
+
+    it('marks the corresponding question as active when an answer is edited', () => {
+        cy.visit('/#/userprofile/answers');
+        cy.get('.answers-list li').first().find('a').click();
+        cy.url().should('include', '/userprofile/answers/edit/');
+        cy.get('textarea').clear().type('Updated answer text');
+        cy.get('form').submit();
+        cy.on('window:alert', (str) => {
+            expect(str).to.equal('Answer updated successfully');
+        });
+        cy.visit('/#/home');
+        cy.get('.button-container .buttonDeco').contains('Active').click();
+        cy.get('.questionContainer .question-entry').first().should('contain', 'Best practices for MongoDB schema design?');
+    });
+
+    it('marks the corresponding question as active when an answer is deleted', () => {
+        cy.visit('/#/userprofile/answers');
+        cy.get('.answers-list li').first().find('a').click();
+        cy.url().should('include', '/userprofile/answers/edit/');
+        cy.get('button').contains('Delete Answer').click();
+        cy.on('window:confirm', () => true);
+        cy.on('window:alert', (str) => {
+            expect(str).to.equal('Answer deleted successfully');
+        });
+        cy.visit('/#/home');
+        cy.get('.button-container .buttonDeco').contains('Active').click();
+        cy.get('.questionContainer .question-entry').first().should('contain', 'Best practices for MongoDB schema design?');
+    }); 
     
 });
 

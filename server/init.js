@@ -42,7 +42,7 @@ async function createInitialData() {
             new Tag({ name: 'JavaScript', createdBy: users[0]._id }),
             new Tag({ name: 'MongoDB', createdBy: users[1]._id }),
             new Tag({ name: 'React', createdBy: users[2]._id }),
-            new Tag({ name: 'Node.js', createdBy: users[3]._id }),
+            new Tag({ name: 'Node.js', createdBy: users[0]._id }),
             new Tag({ name: 'CSS', createdBy: users[4]._id }),
             new Tag({ name: 'Git', createdBy: users[0]._id })
         ];
@@ -140,6 +140,19 @@ async function createInitialData() {
                 upvotes: 5,
                 downvotes: 0,
                 ask_date_time: new Date('2023-01-10T08:00:00Z'),
+                last_answered_time: null
+            }),
+            new Question({
+                title: 'How to use arrow functions in JavaScript?',
+                text: 'I am having trouble understanding arrow functions in JavaScript. Can someone help?',
+                tags: [tags[0]._id],
+                asked_by: users[1]._id,
+                summary: 'Understanding JavaScript',
+                answerCount: 0,
+                views: 6,
+                upvotes: 7,
+                downvotes: 0,
+                ask_date_time: new Date('2022-01-01T08:00:00Z'),
                 last_answered_time: null
             }),
             // ... potentially more questions ...
