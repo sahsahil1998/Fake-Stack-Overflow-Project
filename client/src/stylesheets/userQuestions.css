@@ -1,16 +1,17 @@
 /* Style for the main container of the questions component */
 .questions-container {
-    padding: 20px;
+    margin: 50px 100px;
+    padding: 80px;
     background-color: #f8f8f8;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
     max-width: 800px;
-    margin: auto;
+   
 }
 
 /* Style for the back button */
 .backButton {
-    background-color: #4a90e2;
+    background-color: #e24a89;
     color: white;
     padding: 10px 20px;
     border: none;
@@ -20,7 +21,7 @@
 }
 
 .backButton:hover {
-    background-color: #357ab8; 
+    background-color: #dfc7da;
 }
 
 /* Style for the heading */

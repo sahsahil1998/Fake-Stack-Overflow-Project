@@ -39,9 +39,9 @@ describe('Create Account Tests', () => {
         cy.exec('node ../server/init.js');
     });
 
-    afterEach(() => {
-        cy.exec('node ../server/destroy.js');
-    });
+    // afterEach(() => {
+    //     cy.exec('node ../server/destroy.js');
+    // });
 
     it('successfully navigates to the registration page', () => {
         cy.visit('http://localhost:3000');

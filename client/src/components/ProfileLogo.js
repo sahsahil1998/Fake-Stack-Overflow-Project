@@ -3,6 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faUser } from '@fortawesome/free-solid-svg-icons';
+
 import '../stylesheets/profileLogo.css'; 
 
 const ProfileLogo = () => {
@@ -26,11 +29,11 @@ const ProfileLogo = () => {
     <div className="profile-logo">
       
       {isAuthenticated ? (
-                    <button><Link to="/userprofile">
-      
-                    <img src="../assets/ProfileLogo.jpg" alt="User Profile" />
+                    <Link to="/userprofile">
+                    <button>
+                      <FontAwesomeIcon icon={faUser} />
+                    </button>
                   </Link>
-                  </button>
                 ) : (
                     <button disabled >User Profile</button>
                 )}

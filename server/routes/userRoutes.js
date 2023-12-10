@@ -302,6 +302,74 @@ router.get('/tags', authenticateUser, async (req, res) => {
 
 
 
+router.post('/:voteType/question/:qid', async (req, res) => {
+    console.log("in here");
+    console.log(req.session.user);
+
+    try {
+        console.log("in here");
+        if (req.session && req.session.user) {
+            console.log("in here inside");
+            const username = req.session.user.username;
+            console.log(username);
+            const voteType = req.params.voteType;
+            console.log(voteType);
+            const qid = req.params.qid;
+            console.log(qid);
+
+
+            // Retrieve the question and its associated user
+            const question = await Question.findOne({qid:req.params.qid});
+            
+            if (!question) {
+                return res.status(404).json({ message: 'Question not found' });
+            }
+
+            const asked_by = question.asked_by;
+            console.log(asked_by);
+
+            // Update reputation points based on voteType
+            let reputationPointsChange = 0;
+
+            if (voteType === 'upvote') {
+                console.log('upvote');
+                reputationPointsChange = 5;
+            } else if (voteType === 'downvote') {
+                console.log('downvote');
+                reputationPointsChange = -10;
+            }
+
+            const user = await User.findById(asked_by);
+
+            if (!user) {
+                // If no user is found with the specified ObjectId
+                return res.status(404).json({ message: 'User not found' });
+            }
+            console.log(user)
+            const newUser = await User.findOneAndUpdate(
+               { username:user.username},
+                { $inc: { reputationPoints: reputationPointsChange } },
+                { new: true } // To return the updated user
+            );
+
+
+            console.log("here ");
+            res.json({ message: 'Reputation points updated successfully', newUser });
+        }
+    } catch (error) {
+        console.log("in here error");
+        console.error('Error updating reputation points:', error);
+        res.status(500).json({ message: 'Error updating reputation points' });
+    }
+});
+
+
+
+
+
+
+
+
 router.get('/check-reputation', async (req, res) => {
     try {
         if (req.session && req.session.user) {
