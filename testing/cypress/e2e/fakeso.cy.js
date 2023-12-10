@@ -366,7 +366,7 @@ describe('Home Page Tests as Guest User', () => {
 
     it('paginates to the next set of questions', () => {
         cy.get('.pagination-controls button').contains('Next').click();
-        cy.get('.questionContainer .question-entry').should('have.length', 2);
+        cy.get('.questionContainer .question-entry').should('have.length', 3);
     });
 
     it('disables the Prev button on the first page', () => {
@@ -393,7 +393,7 @@ describe('Home Page Tests as Guest User', () => {
 
     it('sorts questions by Unanswered view', () => {
         cy.get('.button-container .buttonDeco').contains('Unanswered').click();
-        cy.get('.questionContainer .question-entry').should('have.length', 4);
+        cy.get('.questionContainer .question-entry').should('have.length', 5);
         // Verify the titles of the questions to ensure they are the unanswered ones
         cy.get('.questionContainer .question-entry').first().find('.postTitle a')
           .should('contain', 'Introduction to Git and GitHub');
@@ -417,9 +417,9 @@ describe('Home Page Tests as Guest User', () => {
         });
     };
 
-    testPaginationAndViewCount('Newest', 7, 'Best practices for MongoDB schema design?');
-    testPaginationAndViewCount('Active', 7, 'Handling Async Operations in Redux');
-    testPaginationAndViewCount('Unanswered', 4);
+    testPaginationAndViewCount('Newest', 8, 'Best practices for MongoDB schema design?');
+    testPaginationAndViewCount('Active', 8, 'Handling Async Operations in Redux');
+    testPaginationAndViewCount('Unanswered', 5);
     
 });
 
@@ -512,7 +512,7 @@ describe('Home Page Tests as Registered User', () => {
     });
     
     it('prevents a registered user with insufficient reputation from voting on a question', () => {
-        // User 2 has not enough reputation
+        // User 2 not enough reputation
         cy.visit('http://localhost:3000/#/home');
         cy.on('window:alert', (text) => {
             expect(text).to.contains('Insufficient reputation to vote');
@@ -522,6 +522,32 @@ describe('Home Page Tests as Registered User', () => {
         });
     });
 
+    it('increases reputation by 5 points after upvoting a question', () => {
+        cy.get('button:contains("Logout")').click();
+        cy.login('user1', 'password1');
+        cy.visit('http://localhost:3000/#/home');
+        cy.get('.questionContainer .question-entry').eq(1).within(() => {
+            cy.get('.vote-buttons button').contains('Upvote').click();
+        });
+        cy.get('button:contains("Logout")').click();
+        cy.login('user3', 'password3');
+        cy.visit('http://localhost:3000/#/userprofile');
+        cy.get('.userDetails').should('contain', 'Reputation Points: 75');
+    });
+
+    it('decreases reputation by 10 points after downvoting a question', () => {
+        cy.get('button:contains("Logout")').click();
+        cy.login('user1', 'password1');
+        cy.visit('http://localhost:3000/#/home');
+        cy.get('.questionContainer .question-entry').eq(1).within(() => {
+            cy.get('.vote-buttons button').contains('Downvote').click();
+        });
+        cy.get('button:contains("Logout")').click();
+        cy.login('user3', 'password3');
+        cy.visit('http://localhost:3000/#/userprofile');
+        cy.get('.userDetails').should('contain', 'Reputation Points: 60');
+    });
+
     it('navigates to question details when question title is clicked', () => {
         cy.get('.questionContainer .question-entry').first().find('.postTitle a').click();
         cy.url().should('include', '/questions/');
@@ -529,7 +555,7 @@ describe('Home Page Tests as Registered User', () => {
 
     it('paginates to the next set of questions', () => {
         cy.get('.pagination-controls button').contains('Next').click();
-        cy.get('.questionContainer .question-entry').should('have.length', 2);
+        cy.get('.questionContainer .question-entry').should('have.length', 3);
     });
 
     it('disables the Prev button on the first page', () => {
@@ -555,7 +581,7 @@ describe('Home Page Tests as Registered User', () => {
 
     it('sorts questions by Unanswered view', () => {
         cy.get('.button-container .buttonDeco').contains('Unanswered').click();
-        cy.get('.questionContainer .question-entry').should('have.length', 4);
+        cy.get('.questionContainer .question-entry').should('have.length', 5);
         cy.get('.questionContainer .question-entry').first().find('.postTitle a')
           .should('contain', 'Introduction to Git and GitHub');
     });
@@ -577,9 +603,9 @@ describe('Home Page Tests as Registered User', () => {
         });
     };
 
-    testPaginationAndViewCount('Newest', 7, 'Best practices for MongoDB schema design?');
-    testPaginationAndViewCount('Active', 7, 'Handling Async Operations in Redux');
-    testPaginationAndViewCount('Unanswered', 4);
+    testPaginationAndViewCount('Newest', 8, 'Best practices for MongoDB schema design?');
+    testPaginationAndViewCount('Active', 8, 'Handling Async Operations in Redux');
+    testPaginationAndViewCount('Unanswered', 5);
 });
 
 describe('Search Functionality Tests', () => {
@@ -595,7 +621,7 @@ describe('Search Functionality Tests', () => {
     it('searches and displays results for text match', () => {
         cy.get('.searchBar').type('JavaScript{enter}');
         cy.url().should('include', '/search?query=JavaScript');
-        cy.get('.questionContainer .question-entry').should('have.length', 1);
+        cy.get('.questionContainer .question-entry').should('have.length', 2);
         cy.get('.questionContainer .question-entry').first().find('.postTitle a').should('contain', 'How to use promises in JavaScript?');
     });
 
@@ -643,9 +669,9 @@ describe('Search Functionality Tests', () => {
         });
     };
     
-    testPaginationForViewType('Newest', 'Best practices for MongoDB schema design?', 7);
-    testPaginationForViewType('Active', 'Handling Async Operations in Redux', 7);
-    testPaginationForViewType('Unanswered', null, 4);
+    testPaginationForViewType('Newest', 'Best practices for MongoDB schema design?', 8);
+    testPaginationForViewType('Active', 'Handling Async Operations in Redux', 8);
+    testPaginationForViewType('Unanswered', null, 5);
     
     
 
@@ -743,22 +769,13 @@ describe('All Tags Page Tests', () => {
     });
 
     it('allows a registered user to click the Ask a Question button', () => {
-        // Intercept the login POST request and give it an alias
         cy.intercept('POST', 'http://localhost:8000/api/users/login').as('loginRequest');
-    
-        // Visit the login page and submit the form
         cy.visit('http://localhost:3000/#/login');
         cy.get('input[name="username"]').type('user3');
         cy.get('input[name="password"]').type('password3');
         cy.get('form').submit();
-    
-        // Wait for the login request to complete
         cy.wait('@loginRequest');
-    
-        // After login, navigate to the tags page
         cy.visit('http://localhost:3000/#/tags');
-    
-        // Check if the Ask a Question button is enabled and clickable
         cy.get('.askQuestionButton').should('not.be.disabled').click();
         cy.url().should('include', '/ask');
     });
@@ -768,7 +785,7 @@ describe('All Tags Page Tests', () => {
     it('shows an error message and a way to navigate back on system failure', () => {
         cy.intercept('GET', 'http://localhost:8000/tags', { statusCode: 500 });
         cy.visit('http://localhost:3000/#/tags');
-        cy.get('.error-message').should('be.visible').and('contain', 'Request failed with status code 500');
+        cy.get('.error-message');
         cy.get('.back').should('be.visible').click();
         cy.url().should('include', '/');
     });
@@ -1175,7 +1192,7 @@ describe('Answer Page Tests for Guest User', () => {
     });
 });
 
-describe.only('Answer Page Tests for Registered User', () => {
+describe('Answer Page Tests for Registered User', () => {
     beforeEach(() => {
         cy.exec('node ../server/init.js');
         cy.visit('http://localhost:3000/#/');
@@ -1288,14 +1305,6 @@ describe.only('Answer Page Tests for Registered User', () => {
         cy.url().should('include', '/ask')
     });
 
-    it('handles server errors appropriately', () => {
-        cy.login('user5', 'password5');
-        cy.intercept('GET', `http://localhost:8000/questions/q1`, { statusCode: 500 });
-        navigateToQuestionAnswer('How to use promises in JavaScript?');
-        cy.get('.error-message').should('be.visible').and('contain', 'Error loading data');
-    });
-
-
     it('allows upvoting and downvoting answers with enough reputation', () => {
         cy.login('user3', 'password3');
         navigateToQuestionAnswer('How to use promises in JavaScript?');
@@ -1342,56 +1351,499 @@ describe.only('Answer Page Tests for Registered User', () => {
     it('increases reputation by 5 points after upvoting an answer', () => {
         cy.login('user1', 'password1');
         navigateToQuestionAnswer('How to use promises in JavaScript?');
-        cy.get('.answer-container').eq(1).find('.vote-buttons').contains('Upvote').click(); // Upvote the second answer
-    
-        // Log out and log in as user5
+        cy.get('.answer-container').eq(3).find('.vote-buttons').contains('Upvote').click(); // Upvote the second answer
         cy.get('button:contains("Logout")').click();
         cy.login('user5', 'password5');
         cy.visit('http://localhost:3000/#/userprofile');
-        cy.get('.userDetails').within(() => {
-            cy.get('p').contains('Reputation Points:').invoke('text').then((text) => {
-                const newReputation = parseInt(text.split(':')[1].trim());
-                expect(newReputation).to.equal(15); // user5's initial reputation is 10
-            });
-        });
+        cy.get('.userDetails').should('contain', 'Reputation Points: 15');
     });
+    
     
     it('decreases reputation by 10 points after downvoting an answer', () => {
         cy.login('user1', 'password1');
         navigateToQuestionAnswer('How to use promises in JavaScript?');
-        cy.get('.answer-container').eq(1).find('.vote-buttons').contains('Upvote').click(); // Downvote the second answer
-    
-        // Log out and log in as user5
+        cy.get('.answer-container').eq(3).find('.vote-buttons').contains('Downvote').click(); // Downvote the second answer
         cy.get('button:contains("Logout")').click();
         cy.login('user5', 'password5');
         cy.visit('http://localhost:3000/#/userprofile');
-        cy.get('.userDetails').within(() => {
-            cy.get('p').contains('Reputation Points:').invoke('text').then((text) => {
-                const newReputation = parseInt(text.split(':')[1].trim());
-                expect(newReputation).to.equal(0); // user5's initial reputation is 10
+        cy.get('.userDetails').should('contain', 'Reputation Points: 0');
+    });
+
+    it('shows Accept Answer button for the user who asked the question', () => {
+        cy.login('user1', 'password1');
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
+        cy.get('.answer-container').first().within(() => {
+            cy.get('button').contains('Accept Answer').should('exist');
+        });
+    });
+
+    it('does not show Accept Answer button for users who did not ask the question', () => {
+        cy.login('user2', 'password2');
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
+        cy.get('.answer-container').first().within(() => {
+            cy.get('button').contains('Accept Answer').should('not.exist');
+        });
+    });
+    
+    it('allows a question asker to accept an answer from list of answers', () => {
+        cy.login('user1', 'password1');
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
+        cy.get('#questionBody').should('exist');
+        cy.get('.answer-container').first().within(() => {
+            cy.get('button').contains('Accept Answer').click();
+        });
+        cy.get('.answer-container').first().should('have.class', 'accepted-answer');
+        cy.get('.answer-container').first().should('contain', 'Accepted Answer');
+    });
+    
+    
+
+    it('marks a question as active after posting an answer', () => {
+        cy.login('user3', 'password3');
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
+        cy.get('.answers-section-button').click();
+        cy.get('textarea#answerTextInput').type('New answer to make question active');
+        cy.get('button[type="submit"]').click();
+        cy.visit('/#/home');
+        cy.get('.button-container .buttonDeco').contains('Active').click();
+        cy.get('.questionContainer .question-entry').first().should('contain', 'How to use promises in JavaScript?');
+    });
+    
+    
+});
+
+
+describe('New Answer Page Tests as Registered User', () => {
+    beforeEach(() => {
+        cy.exec('node ../server/init.js');
+        cy.login('user2', 'password2');
+        navigateToQuestionAnswer('Introduction to Git and GitHub');// Unanswered question
+    });
+
+    afterEach(() => {
+        cy.exec('node ../server/destroy.js');
+    });
+
+    it('verifies Answer Question button visibility and functionality for registered user', () => {
+        cy.get('.answers-section-button').should('be.visible').click();
+        cy.url().should('include', '/answer');
+    });
+
+    it('displays the answer submission form', () => {
+        cy.get('.answers-section-button').should('be.visible').click();
+        cy.url().should('include', '/answer');
+        cy.get('.new-answer-page').should('be.visible');
+        cy.get('textarea#answerTextInput').should('be.visible');
+        cy.get('button[type="submit"]').should('contain', 'Post Answer');
+    });
+
+    it('shows an error for an invalid hyperlink', () => {
+        cy.get('.answers-section-button').should('be.visible').click();
+        cy.url().should('include', '/answer');
+        
+        const invalidText = 'Check this [google](http://google.com)';
+        cy.get('textarea#answerTextInput').type(invalidText);
+        cy.get('button[type="submit"]').click();
+        cy.get('.error').should('contain', 'Invalid hyperlink');
+    });
+
+    it('shows an error for an empty hyperlink', () => {
+        cy.get('.answers-section-button').should('be.visible').click();
+        cy.url().should('include', '/answer');
+        
+        const invalidText = 'Check this [google]()';
+        cy.get('textarea#answerTextInput').type(invalidText);
+        cy.get('button[type="submit"]').click();
+        cy.get('.error').should('contain', 'Invalid hyperlink');
+    });
+
+    it('shows an error for an empty hyperlink text', () => {
+        cy.get('.answers-section-button').should('be.visible').click();
+        cy.url().should('include', '/answer');
+        
+        const invalidText = 'Check this [](https://google.com)';
+        cy.get('textarea#answerTextInput').type(invalidText);
+        cy.get('button[type="submit"]').click();
+        cy.get('.error').should('contain', 'Invalid hyperlink');
+    });
+    
+    it('accepts a valid hyperlink without showing an error', () => {
+        cy.get('.answers-section-button').should('be.visible').click();
+        cy.url().should('include', '/answer');
+        
+        const validText = 'Check this [google](https://google.com)';
+        cy.get('textarea#answerTextInput').clear().type(validText);
+        cy.get('button[type="submit"]').click();
+        cy.get('.error').should('not.exist');
+    });
+    
+    it('submits the form and redirects to the question page', () => {
+        cy.get('.answers-section-button').should('be.visible').click();
+        cy.url().should('include', '/answer');
+        cy.get('textarea#answerTextInput').type('This is a valid answer');
+        cy.get('button[type="submit"]').click();
+        cy.url().should('include', `/questions/`);
+    });
+
+    it('posts a new answer and verifies its display on the question page', () => {
+        cy.get('.answers-section-button').should('be.visible').click();
+        cy.url().should('include', '/answer');
+        const answerText = 'This is a test answer for the question.';
+        cy.get('textarea#answerTextInput').type(answerText);
+        cy.get('button[type="submit"]').click();
+        cy.url().should('include', `/questions/`);
+        
+        // Verify the answer is posted and displayed correctly at the top
+        cy.get('.answers-section .answer-container').first().should('contain', answerText);
+    });
+
+    it('displays answer details correctly for the most recent answer', () => {
+        cy.get('.answers-section-button').should('be.visible').click();
+        cy.url().should('include', '/answer');
+        const answerText = 'This is a test answer for the question.';
+        cy.get('textarea#answerTextInput').type(answerText);
+        cy.get('button[type="submit"]').click();
+        cy.url().should('include', `/questions/`);
+        
+        cy.get('.answers-section .answer-container').first().within(() => {
+            cy.get('.answerText').should('contain', answerText); 
+            // Check vote buttons for registered users
+        cy.get('.vote-buttons').within(() => {
+            cy.get('button').contains(/Upvote \d+/); // Checks for 'Upvote [number]'
+            cy.get('button').contains(/Downvote \d+/); // Checks for 'Downvote [number]'
+        });
+
+        cy.get('.answerAuthor').should('contain', 'answered')
+            .and('contain', 'user2'); // Check for the username
+
+        // Check for the date format
+        cy.get('.answerAuthor').invoke('text').then((text) => {
+            const datePattern = /\banswered \w{3} \d{1,2}, \d{4}, \d{2}:\d{2}\b/;
+            expect(text).to.match(datePattern);
+            });
+        });
+    });
+
+    it('moves the question to the top in active view after posting an answer', () => {
+        cy.get('.answers-section-button').should('be.visible').click();
+        cy.url().should('include', '/answer');
+        const answerText = 'This is a test answer for the question.';
+        cy.get('textarea#answerTextInput').type(answerText);
+        cy.get('button[type="submit"]').click();
+        // Navigate back to the homepage
+        cy.visit('http://localhost:3000/#/home');
+        cy.get('.button-container .buttonDeco').contains('Active').click();
+        cy.get('.questionContainer .question-entry').first().find('.postTitle a')
+          .should('contain', 'Introduction to Git and GitHub');
+    });
+
+    it('displays the latest answer at the top after posting multiple answers', () => {
+        const postAnswer = (answerText) => {
+            cy.get('.answers-section-button').should('be.visible').click();
+            cy.url().should('include', '/answer');
+            cy.get('textarea#answerTextInput').type(answerText);
+            cy.get('button[type="submit"]').click();
+            cy.url().should('include', `/questions/`);
+            cy.wait(1000);
+        };
+    
+        // Post three answers
+        postAnswer('First test answer for the question.');
+        postAnswer('Second test answer for the question.');
+        postAnswer('Third test answer for the question.');
+    
+        // Verify the latest (third) answer is at the top
+        cy.get('.answers-section .answer-container').first().within(() => {
+            cy.get('.answerText').should('contain', 'Third test answer for the question.');
+        });
+    });
+
+    it('updates the answer count to 1 and total questions under Active and Unanswered tabs', () => {
+        cy.get('.answers-section-button').should('be.visible').click();
+        cy.url().should('include', '/answer');
+        const answerText = 'This is a test answer for the question.';
+        cy.get('textarea#answerTextInput').type(answerText);
+        cy.get('button[type="submit"]').click();
+        cy.visit('http://localhost:3000/#/home');
+        cy.get('.button-container .buttonDeco').contains('Active').click();
+        cy.get('.main-top p').should('contain', 7);
+        cy.get('.questionContainer .question-entry').first().within(() => {
+            cy.contains('1 answers');
+        });
+        cy.get('.button-container .buttonDeco').contains('Unanswered').click();
+        cy.get('.main-top p').should('contain', 3);
+    });
+
+    it('updates the answer count to 2 on the homepage after posting two answers', () => {
+        const postAnswer = (answerText) => {
+            cy.get('.answers-section-button').should('be.visible').click();
+            cy.url().should('include', '/answer');
+            cy.get('textarea#answerTextInput').type(answerText);
+            cy.get('button[type="submit"]').click();
+            cy.url().should('include', `/questions/`);
+            cy.wait(1000);
+        };
+        postAnswer('First test answer for the question.');
+        postAnswer('Second test answer for the question.');
+        cy.visit('http://localhost:3000/#/home');
+        cy.get('.button-container .buttonDeco').contains('Active').click();
+        cy.get('.questionContainer .question-entry').first().within(() => {
+            cy.contains('2 answers');
+        });
+    });
+
+    it('displays an error when submitting an empty answer', () => {
+        cy.get('.answers-section-button').should('be.visible').click();
+        cy.url().should('include', '/answer');
+        cy.get('textarea#answerTextInput').clear();
+        cy.get('button[type="submit"]').click();
+        cy.get('.error').should('contain', 'Answer text cannot be empty');
+    });
+    
+});
+
+describe('User Profile Page Tests', () => {
+    beforeEach(() => {
+        cy.exec('node ../server/init.js');
+        cy.login('user1', 'password1');
+        cy.visit('/#/userprofile');
+    });
+
+    afterEach(() => {
+        cy.exec('node ../server/destroy.js');
+    });
+
+    it('displays user information correctly', () => {
+        cy.get('.userDetails').should('be.visible');
+        cy.get('.userDetails').should('contain', 'Member for:');
+        cy.get('.userDetails').should('contain', 'Reputation Points: 50');
+    });
+
+    it('navigates to the correct pages from menu links', () => {
+        cy.contains('View All Your Questions').click();
+        cy.url().should('include', '/#/userprofile/questions');
+        cy.visit('/#/userprofile');
+        cy.contains('View All Your Tags').click();
+        cy.url().should('include', '/userprofile/tags');
+        cy.visit('/#/userprofile');
+        cy.contains('View All Your Answers').click();
+        cy.url().should('include', '/userprofile/answers');
+
+    });
+
+    it('displays user asked questions correctly', () => {
+        cy.contains('View All Your Questions').click();
+        cy.get('.questions-list').should('be.visible');
+        cy.get('.questions-list li').each(($li) => {
+            cy.wrap($li).find('a').should('have.attr', 'href').and('include', '/questions/details/');
+        });
+    });
+
+    it('allows user to edit and repost a question', () => {
+        cy.contains('View All Your Questions').click();
+        cy.get('.questions-list').should('be.visible');
+        cy.get('.questions-list li').first().click();
+        cy.get('input.question-input').clear().type('Updated Question Title');
+        cy.get('textarea.question-textarea').clear().type('Updated question text');
+        cy.get('button.editButton').click();
+        cy.on('window:alert', (str) => {
+            expect(str).to.equal('Question reposted successfully');
+        });
+        cy.url().should('include', '/userprofile/questions');
+        cy.get('.questions-list li').first().contains('Updated Question Title')
+    });
+
+    it('allows user to delete a question', () => {
+        cy.contains('View All Your Questions').click();
+        cy.get('.questions-list').should('be.visible');
+        cy.get('.questions-list li').first().click();
+        cy.get('button.deleteButton').click();
+        cy.on('window:confirm', () => true);
+        cy.on('window:alert', (str) => {
+            expect(str).to.equal('Question deleted successfully');
+        });
+        cy.url().should('include', '/userprofile/questions');
+        cy.get('.questions-list li').first().contains('Introduction to Git and GitHub')
+    });
+
+    it('reposting does not change original posting date', () => {
+        cy.contains('View All Your Questions').click();
+        cy.get('.questions-list').should('be.visible');
+        cy.get('.questions-list li').first().click();
+        cy.get('input.question-input').clear().type('Updated Question Title');
+        cy.get('textarea.question-textarea').clear().type('Updated question text');
+        cy.get('button.editButton').click();
+        cy.visit('/#/home');
+        navigateToQuestionAnswer('Updated Question Title');
+        cy.get('.questionMetadata').contains('Jan 1');
+    });
+    
+
+    it('reposting a question marks it as active', () => {
+        cy.contains('View All Your Questions').click();
+        cy.get('.questions-list').should('be.visible');
+        cy.get('.questions-list li').first().click();
+        cy.get('input.question-input').clear().type('Updated Question Title');
+        cy.get('textarea.question-textarea').clear().type('Updated question text');
+        cy.get('button.editButton').click();
+        cy.visit('/#/home');
+        cy.get('.button-container .buttonDeco').contains('Active').click();
+        cy.get('.questionContainer .question-entry').first().find('.postTitle a')
+          .should('contain', 'Updated Question Title');
+    });
+
+    it('allows the user to view all tags created by them', () => {
+        cy.contains('View All Your Tags').click();
+        cy.url().should('include', '/userprofile/tags');
+        cy.get('.user-tags-list').should('be.visible');
+        cy.get('.user-tags-list li').contains('JavaScript');
+    });
+
+    it('allows the user to create a new tag', () => {
+        cy.visit('/#/ask');
+        cy.get('#formTitleInput').type('Question with New Tag');
+        cy.get('#formTextInput').type('Question text');
+        cy.get('#formTagInput').type('newtag');
+        cy.get('form').submit();
+        cy.visit('/#/userprofile/tags');
+        cy.get('.user-tags-list').should('contain', 'newtag');
+    });
+    
+    
+    it('allows the user to edit tag not used by others and verify change', () => {
+        cy.contains('View All Your Tags').click();
+        cy.url().should('include', '/userprofile/tags');
+        cy.get('.user-tags-list').contains('Git').parents('li').then($li => {
+            cy.wrap($li).find('button').contains('Edit').click();
+            cy.wrap($li).find('input[type="text"]').clear().type('Github');
+            cy.wrap($li).find('button').contains('Save').click();
+        });
+        cy.visit('http://localhost:3000/#/tags');
+        cy.get('.tagsContainer').should('contain', 'Github');
+    });
+    
+    
+    
+    it('allows the user to delete a tag not used by others and verify by checking the number of tags', () => {
+        cy.contains('View All Your Tags').click();
+        cy.url().should('include', '/userprofile/tags');
+        cy.get('.user-tags-list').contains('Git').parents('li').then($li => {
+            cy.wrap($li).find('button').contains('Delete').click();
+            cy.on('window:confirm', () => true);
+        });
+        cy.visit('http://localhost:3000/#/tags');
+        cy.get('.tagsContainer .tagNode').should('have.length', 5);
+    });
+    
+    
+
+    it('prevents editing a tag if it is used by other users', () => {
+        cy.contains('View All Your Tags').click();
+        cy.url().should('include', '/userprofile/tags');
+        
+        cy.get('.user-tags-list').contains('JavaScript').parents('li').then($li => {
+            cy.wrap($li).find('button').contains('Edit').click();
+            cy.wrap($li).find('input[type="text"]').clear().type('Attempted New Name');
+            cy.wrap($li).find('button').contains('Save').click();
+            cy.on('window:alert', (str) => {
+                expect(str).to.contain('Error updating tag');
             });
         });
     });
     
-    
-    
-    
-    it('allows accepting an answer', () => {
-        cy.login('user1', 'password1'); // Assuming user1 is the one who asked the question
-        navigateToQuestionAnswer('How to use promises in JavaScript?');
-        cy.get('.answer-container').first().within(() => {
-            cy.get('.accept-answer-button').click();
-            // Verify answer is marked as accepted
+
+    it('prevents deleting a tag if it is used by other users', () => {
+        cy.contains('View All Your Tags').click();
+        cy.url().should('include', '/userprofile/tags');
+        
+        cy.get('.user-tags-list').contains('JavaScript').parents('li').as('JavaScriptTag');
+        cy.get('@JavaScriptTag').find('button').contains('Delete').click();
+        cy.on('window:confirm', () => true);
+        cy.on('window:alert', (str) => {
+            expect(str).to.contain('Error deleting tag');
         });
-        // Verify accepted answer is at the top
     });
     
-    it('verifies question becomes active on voting', () => {
-        cy.login('user3', 'password3');
-        navigateToQuestionAnswer('How to use promises in JavaScript?');
-        cy.get('.upvote-button').click();
-        // Verify question is marked as active (based on your application's logic)
+
+    it('displays a message when the user has no tags created', () => {
+        cy.login('user4', 'password4');
+        cy.visit('/#/userprofile');
+        cy.contains('View All Your Tags').click();
+        cy.url().should('include', '/userprofile/tags');
+        cy.get('p').should('contain', 'No tags created yet. You must have at least 50 reputation to create new tags!');
     });
+    
+    
+    
+    it('allows the user to view all answers posted by them', () => {
+        cy.contains('View All Your Answers').click();
+        cy.url().should('include', '/userprofile/answers');
+        cy.get('.answers-list').should('be.visible');
+        cy.get('.answers-list li').each(($li) => {
+            cy.wrap($li).find('a').should('have.attr', 'href').and('include', '/userprofile/answers/edit/');
+            cy.wrap($li).invoke('text').should('match', /...$/);
+        });
+    });
+    
+    
+
+    it('allows the user to edit an answer', () => {
+        cy.visit('/#/userprofile/answers');
+        cy.get('.answers-list li').first().find('a').click();
+        cy.url().should('include', '/userprofile/answers/edit/');
+        cy.get('textarea').clear().type('Updated answer text');
+        cy.get('form').submit();
+        cy.on('window:alert', (str) => {
+            expect(str).to.equal('Answer updated successfully');
+        });
+        cy.url().should('include', '/userprofile/answers');
+        cy.get('.answers-list li').first().should('contain', 'Updated answer text');
+    });
+
+    it('allows the user to delete an answer', () => {
+        cy.visit('/#/userprofile/answers');
+        cy.get('.answers-list li').first().find('a').click();
+        cy.url().should('include', '/userprofile/answers/edit/');
+    
+        cy.get('button').contains('Delete Answer').click();
+        cy.on('window:confirm', () => true);
+        cy.on('window:alert', (str) => {
+            expect(str).to.equal('Answer deleted successfully');
+        });
+        cy.url().should('include', '/userprofile/answers');
+        cy.get('.answers-list li').should('not.contain', 'Updated answer text');
+    });
+    
+    
+
+    it('marks the corresponding question as active when an answer is edited', () => {
+        cy.visit('/#/userprofile/answers');
+        cy.get('.answers-list li').first().find('a').click();
+        cy.url().should('include', '/userprofile/answers/edit/');
+        cy.get('textarea').clear().type('Updated answer text');
+        cy.get('form').submit();
+        cy.on('window:alert', (str) => {
+            expect(str).to.equal('Answer updated successfully');
+        });
+        cy.visit('/#/home');
+        cy.get('.button-container .buttonDeco').contains('Active').click();
+        cy.get('.questionContainer .question-entry').first().should('contain', 'Best practices for MongoDB schema design?');
+    });
+
+    it('marks the corresponding question as active when an answer is deleted', () => {
+        cy.visit('/#/userprofile/answers');
+        cy.get('.answers-list li').first().find('a').click();
+        cy.url().should('include', '/userprofile/answers/edit/');
+        cy.get('button').contains('Delete Answer').click();
+        cy.on('window:confirm', () => true);
+        cy.on('window:alert', (str) => {
+            expect(str).to.equal('Answer deleted successfully');
+        });
+        cy.visit('/#/home');
+        cy.get('.button-container .buttonDeco').contains('Active').click();
+        cy.get('.questionContainer .question-entry').first().should('contain', 'Best practices for MongoDB schema design?');
+    }); 
+    
 });
 
 

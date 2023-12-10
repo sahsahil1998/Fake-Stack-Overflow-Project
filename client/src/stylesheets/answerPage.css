@@ -59,6 +59,17 @@
     border-radius: 5px;
 }
 
+.accepted-answer {
+    border: 2px solid green; 
+}
+
+.accepted-answer-header {
+    background-color: lightgreen; 
+    padding: 5px;
+    text-align: center;
+    font-weight: bold;
+}
+
 
 
 .answerText {
