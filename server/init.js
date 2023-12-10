@@ -250,13 +250,13 @@ async function createInitialData() {
             new Comment({
                 text: 'This is a great answer!',
                 commented_by: users[0]._id,
-                onQuestion: questions[0]._id,
+                onQuestion: questions[0].qid,
                 comment_date_time: new Date()
             }),
             new Comment({
                 text: 'I have a follow-up question.',
                 commented_by: users[1]._id,
-                onAnswer: answers[0]._id,
+                onAnswer: answers[0].aid,
                 comment_date_time: new Date()
             }),
             // Add more comments here...

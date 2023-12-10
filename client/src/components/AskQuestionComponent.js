@@ -99,8 +99,8 @@ const AskQuestionComponent = () => {
     return (
         <form onSubmit={handleSubmit} id="questionForm">
             <div>
-                <h2>Question Title:</h2>
-                <input 
+                <h2 className='question-title'  style={{color:'black'}}>Question Title:</h2>
+                <input  
                     type="text" 
                     id="formTitleInput"
                     placeholder="Enter the title of your question"
@@ -110,8 +110,8 @@ const AskQuestionComponent = () => {
                 {errors.title && <div className="error-message">{errors.title}</div>}
             </div>
             <div>
-                <h2>Question Text:</h2>
-                <textarea 
+                <h2 className='question-text' style={{color:'black'}}>Question Text:</h2>
+                <textarea  
                     id="formTextInput"
                     placeholder="Describe your question in detail"
                     value={text}
@@ -120,7 +120,7 @@ const AskQuestionComponent = () => {
                 {errors.text && <div className="error-message">{errors.text}</div>}
             </div>
             <div>
-                <h2>Tags:</h2>
+                <h2 className='question-tags' style={{color:'black'}}>Tags:</h2>
                 <input 
                     type="text" 
                     id="formTagInput"
