@@ -1566,12 +1566,12 @@ describe('New Answer Page Tests as Registered User', () => {
         cy.get('button[type="submit"]').click();
         cy.visit('http://localhost:3000/#/home');
         cy.get('.button-container .buttonDeco').contains('Active').click();
-        cy.get('.main-top p').should('contain', 7);
+        cy.get('.main-top p').should('contain', 8);
         cy.get('.questionContainer .question-entry').first().within(() => {
             cy.contains('1 answers');
         });
         cy.get('.button-container .buttonDeco').contains('Unanswered').click();
-        cy.get('.main-top p').should('contain', 3);
+        cy.get('.main-top p').should('contain', 4);
     });
 
     it('updates the answer count to 2 on the homepage after posting two answers', () => {

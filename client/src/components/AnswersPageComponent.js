@@ -242,49 +242,52 @@ const AnswersPageComponent = () => {
 
                     <h3>Answers:</h3>
                     <div className="answers-section">
-                    {currentAnswers.length > 0 ? (
-                            currentAnswers.map(answer => (
+                        {currentAnswers.length > 0 ? (
+                            // Separate the accepted answer from the rest
+                            [...currentAnswers].sort((a, b) => {
+                                if (a.isAccepted) return -1;
+                                if (b.isAccepted) return 1;
+                                return new Date(b.ans_date_time) - new Date(a.ans_date_time);
+                            }).map(answer => (
                                 <div key={answer.aid} className={`answer-container ${answer.isAccepted ? 'accepted-answer' : ''}`}>
                                     {answer.isAccepted && <div className="accepted-answer-header">Accepted Answer</div>}
                                     {question.asked_by._id === user?.id && !answer.isAccepted && (
                                         <button onClick={() => handleAcceptAnswer(answer.aid)}>Accept Answer</button>
                                     )}
-                                    
 
+                                    <div className="vote-buttons">
+                                        {isAuthenticated ? (
+                                            <>
+                                                <button onClick={() => handleVote(answer.aid, 'upvote')} className='vote'>Upvote {answer.upvotes}</button>
+                                                <button onClick={() => handleVote(answer.aid, 'downvote')} className='vote'>Downvote {answer.downvotes}</button>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span>Upvotes: {answer.upvotes}</span>
+                                                <span> Downvotes: {answer.downvotes}</span>
+                                            </>
+                                        )}
+                                    </div>
 
-                                <div className="vote-buttons">
-                                    {isAuthenticated ? (
-                                        <>
-                                            <button onClick={() => handleVote(answer.aid, 'upvote')} className='vote'>Upvote {answer.upvotes}</button>
-                                            <button onClick={() => handleVote(answer.aid, 'downvote')} className='vote'>Downvote {answer.downvotes}</button>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <span>Upvotes: {answer.upvotes}</span>
-                                            <span> Downvotes: {answer.downvotes}</span>
-                                        </>
-                                    )}
+                                    <div className="answerText">{renderTextWithHyperlinks(answer.text)}</div>
+                                    <div className="answerAuthor">
+                                        {answer.ans_by ? `${answer.ans_by.username} answered ${formatDate(answer.ans_date_time)}` : 'Unknown user'}
+                                    </div>
+
+                                    {/* Comments for each Answer */}
+                                    <div className="comments-section">
+                                        <h4>Comments on Answer:</h4>
+                                        <CommentsComponent parentId={answer.aid} type="answer" user={user} />
+                                    </div>
+
+                                    <hr style={{ borderTop: "1px dotted #000" }} />
                                 </div>
-
-
-                                <div className="answerText">{renderTextWithHyperlinks(answer.text)}</div>
-                                <div className="answerAuthor">
-                                    {answer.ans_by ? `${answer.ans_by.username} answered ${formatDate(answer.ans_date_time)}` : 'Unknown user'}
-                                </div>
-                                
-                                {/* Comments for each Answer */}
-                                <div className="comments-section">
-                                    <h4>Comments on Answer:</h4>
-                                    <CommentsComponent parentId={answer.aid} type="answer" user={user} />
-                                </div>
-    
-                                <hr style={{ borderTop: "1px dotted #000" }} />
-                            </div>
                             ))
                         ) : (
                             <div>No answers yet. Be the first to answer!</div>
                         )}
                     </div>
+
     
                     {/* Pagination Controls */}
                     <PaginationControls />
