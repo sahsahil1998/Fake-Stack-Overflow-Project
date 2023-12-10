@@ -239,7 +239,7 @@ router.get('/tags', authenticateUser, async (req, res) => {
 
 
 
-  router.post('/:voteType', async (req, res) => {
+  router.post('/:voteType/:aid', async (req, res) => {
     console.log("in here");
     console.log(req.session.user);
 
@@ -251,6 +251,19 @@ router.get('/tags', authenticateUser, async (req, res) => {
             console.log(username);
             const voteType = req.params.voteType;
             console.log(voteType);
+            const aid = req.params.aid;
+            console.log(aid);
+
+
+            // Retrieve the question and its associated user
+            const answer = await Answer.findOne({aid:req.params.aid});
+            
+            if (!answer) {
+                return res.status(404).json({ message: 'Question not found' });
+            }
+
+            const ans_by = answer.ans_by;
+            console.log(ans_by);
 
             // Update reputation points based on voteType
             let reputationPointsChange = 0;
@@ -263,15 +276,22 @@ router.get('/tags', authenticateUser, async (req, res) => {
                 reputationPointsChange = -10;
             }
 
-            const user = await User.findOneAndUpdate(
-               { username:username},
+            const user = await User.findById(ans_by);
+
+            if (!user) {
+                // If no user is found with the specified ObjectId
+                return res.status(404).json({ message: 'User not found' });
+            }
+            console.log(user)
+            const newUser = await User.findOneAndUpdate(
+               { username:user.username},
                 { $inc: { reputationPoints: reputationPointsChange } },
                 { new: true } // To return the updated user
             );
 
 
             console.log("here ");
-            res.json({ message: 'Reputation points updated successfully', user });
+            res.json({ message: 'Reputation points updated successfully', newUser });
         }
     } catch (error) {
         console.log("in here error");
