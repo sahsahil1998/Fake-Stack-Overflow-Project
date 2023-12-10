@@ -1630,6 +1630,14 @@ describe('User Profile Page Tests', () => {
         cy.get('.userDetails').should('contain', 'Reputation Points: 50');
     });
 
+    it('verifies user profile information for points and member days', () => {
+        cy.login('user4', 'password4');
+        cy.visit('/#/userprofile');
+        cy.get('.userDetails').should('be.visible');
+        cy.get('.userDetails').should('contain', 'Reputation Points: 30');
+        cy.get('.userDetails').should('contain', 'Member for: 10 days');
+    });
+
     it('navigates to the correct pages from menu links', () => {
         cy.contains('View All Your Questions').click();
         cy.url().should('include', '/#/userprofile/questions');

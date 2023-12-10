@@ -26,12 +26,15 @@ async function createInitialData() {
             bcrypt.hash('password5', saltRounds)
         ]);
 
+        const tenDaysAgo = new Date();
+        tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
+
         // Create initial users
         const users = [
             new User({ username: 'user1', email: 'user1@gmail.com', passwordHash: hashedPasswords[0], reputationPoints: 50 }),
             new User({ username: 'user2', email: 'user2@gmail.com', passwordHash: hashedPasswords[1], reputationPoints: 20 }),
             new User({ username: 'user3', email: 'user3@gmail.com', passwordHash: hashedPasswords[2], reputationPoints: 70 }),
-            new User({ username: 'user4', email: 'user4@gmail.com', passwordHash: hashedPasswords[3], reputationPoints: 30 }),
+            new User({ username: 'user4', email: 'user4@gmail.com', passwordHash: hashedPasswords[3], reputationPoints: 30, createdAt: tenDaysAgo }),
             new User({ username: 'user5', email: 'user5@gmail.com', passwordHash: hashedPasswords[4], reputationPoints: 10 })
         ];
 
