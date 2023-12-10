@@ -146,7 +146,7 @@ const AnswersPageComponent = () => {
             const response = await axios.post(`http://localhost:8000/answers/${aid}/${voteType}`,null, { withCredentials: true });
             console.log('back');
             updateAnswerVotes(aid, response.data);
-            await axios.post(`http://localhost:8000/api/users/${voteType}`, null,{ withCredentials: true })
+            await axios.post(`http://localhost:8000/api/users/${voteType}/${aid}`, null,{ withCredentials: true })
         } catch (error) {
             console.error('Error handling vote:', error);
             if (error.response && error.response.status === 403) {
