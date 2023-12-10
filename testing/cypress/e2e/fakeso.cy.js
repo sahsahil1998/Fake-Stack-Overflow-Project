@@ -1424,6 +1424,63 @@ describe('Answer Page Tests for Registered User', () => {
 });
 
 
+describe.only('Comments Page Tests for Guest User', () => {
+    before(() => {
+        cy.exec('node ../server/init.js');
+        setupComments();
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
+    });
+
+    afterEach(() => {
+        cy.exec('node ../server/destroy.js');
+    });
+
+    it('displays a list of comments for a question', () => {
+        cy.get('.comments-section').should('exist');
+        cy.get('.comments-section div').should('have.length', 3); // Assuming 3 comments per page
+    });
+
+    it('navigates to the next set of comments and back to the first set', () => {
+        cy.get('.comments-section').within(() => {
+            cy.get('button').contains('Next').click();
+            cy.wait(1000); // Wait for comments to load
+            cy.get('div').should('have.length', 3); // Check for 3 comments on the next page
+
+            cy.get('button').contains('Prev').click();
+            cy.wait(1000); // Wait for comments to load
+            cy.get('div').should('have.length', 3); // Check for 3 comments back on the first page
+        });
+    });
+
+    it('displays the most recent comment first', () => {
+        cy.get('.comments-section div').first().should('contain', 'User1 Comment 4'); // Assuming the latest comment is from user1
+    });
+
+    it('displays username and votes for each comment', () => {
+        cy.get('.comments-section div').each(($el) => {
+            cy.wrap($el).find('p').contains('Commented by:').should('exist');
+            cy.wrap($el).find('p').contains('Upvotes:').should('exist');
+        });
+    });
+
+    it('handles no comments condition', () => {
+        cy.visit('http://localhost:3000/#/questions/q2'); // Navigate to a different question's page
+        cy.get('.comments-section').should('contain', 'No comments yet.');
+    });
+
+    it('displays an error message on failure to retrieve comments', () => {
+        cy.intercept('GET', 'http://localhost:8000/comments/question/*', { statusCode: 500 });
+        cy.visit('http://localhost:3000/#/questions/q1'); // Reload the page
+        cy.get('.comments-section').should('contain', 'Failed to load comments.');
+    });
+
+    // Additional tests can be added here for other functionalities
+});
+
+
+
+
+
 describe('New Answer Page Tests as Registered User', () => {
     beforeEach(() => {
         cy.exec('node ../server/init.js');
