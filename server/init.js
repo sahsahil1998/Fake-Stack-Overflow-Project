@@ -169,7 +169,7 @@ async function createInitialData() {
                 ans_date_time: new Date('2023-01-02T08:00:00Z'),
                 upvotes: 5,
                 downvotes: 1,
-                isAccepted: true
+                isAccepted: false
             }),
             new Answer({
                 question: questions[1]._id,

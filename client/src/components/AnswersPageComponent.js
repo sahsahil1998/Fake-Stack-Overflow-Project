@@ -182,15 +182,20 @@ const AnswersPageComponent = () => {
         try {
             const response = await axios.put(`http://localhost:8000/answers/accept/${aid}`, {}, { withCredentials: true });
             const acceptedAnswer = response.data;
-    
-            // Update state to reflect the accepted answer
-            setQuestion(prev => ({
-                ...prev,
-                answers: prev.answers.map(a => ({
+
+            // Update state to move the accepted answer to the top
+            setQuestion(prev => {
+                const updatedAnswers = prev.answers.map(a => ({
                     ...a,
-                    isAccepted: a.aid === acceptedAnswer.aid ? true : false
-                }))
-            }));
+                    isAccepted: a.aid === acceptedAnswer.aid
+                }));
+                updatedAnswers.sort((a, b) => {
+                    if (a.isAccepted) return -1;
+                    if (b.isAccepted) return 1;
+                    return new Date(b.ans_date_time) - new Date(a.ans_date_time);
+                });
+                return { ...prev, answers: updatedAnswers };
+            });
         } catch (error) {
             console.error('Error accepting answer:', error);
         }
@@ -237,13 +242,14 @@ const AnswersPageComponent = () => {
 
                     <h3>Answers:</h3>
                     <div className="answers-section">
-                        {currentAnswers.length > 0 ? currentAnswers
-                        .sort((a, b) => new Date(b.ans_date_time) - new Date(a.ans_date_time))
-                        .map(answer => (
-                            <div key={answer.aid} className="answer-container">
-                                {question.asked_by._id === user?.id && !answer.isAccepted && (
-                                    <button onClick={() => handleAcceptAnswer(answer.aid)}>Accept Answer</button>
-                                )}
+                    {currentAnswers.length > 0 ? (
+                            currentAnswers.map(answer => (
+                                <div key={answer.aid} className={`answer-container ${answer.isAccepted ? 'accepted-answer' : ''}`}>
+                                    {answer.isAccepted && <div className="accepted-answer-header">Accepted Answer</div>}
+                                    {question.asked_by._id === user?.id && !answer.isAccepted && (
+                                        <button onClick={() => handleAcceptAnswer(answer.aid)}>Accept Answer</button>
+                                    )}
+                                    
 
 
                                 <div className="vote-buttons">
@@ -274,7 +280,8 @@ const AnswersPageComponent = () => {
     
                                 <hr style={{ borderTop: "1px dotted #000" }} />
                             </div>
-                        )) : (
+                            ))
+                        ) : (
                             <div>No answers yet. Be the first to answer!</div>
                         )}
                     </div>
