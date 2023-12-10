@@ -50,3 +50,4 @@ The Singleton Pattern is implemented to ensure the creation of a single, frozen 
 - Location in code where pattern is used:
 The implementation of the Singleton Pattern can be found in the server.js file, where a singular instance of the associated class is created. This instance is then utilized universally across the application, ensuring consistency and centralized control over the database interactions.
 The constructor in the class DataBaseService includes a check for single instance and throws an error if someone creates another instance of it.
+The single instance of it is created in server.js file where the server connects to the database.
