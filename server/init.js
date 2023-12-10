@@ -42,7 +42,7 @@ async function createInitialData() {
             new Tag({ name: 'JavaScript', createdBy: users[0]._id }),
             new Tag({ name: 'MongoDB', createdBy: users[1]._id }),
             new Tag({ name: 'React', createdBy: users[2]._id }),
-            new Tag({ name: 'Node.js', createdBy: users[3]._id }),
+            new Tag({ name: 'Node.js', createdBy: users[0]._id }),
             new Tag({ name: 'CSS', createdBy: users[4]._id }),
             new Tag({ name: 'Git', createdBy: users[0]._id })
         ];
@@ -80,7 +80,7 @@ async function createInitialData() {
             new Question({
                 title: 'React State Management',
                 text: 'How do you effectively manage state in a large React application?',
-                tags: [tags[2]._id],
+                tags: [tags[2]._id, tags[5]._id],
                 asked_by: users[2]._id,
                 summary: 'State management in React',
                 answerCount: 0, 
