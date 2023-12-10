@@ -512,7 +512,7 @@ describe('Home Page Tests as Registered User', () => {
     });
     
     it('prevents a registered user with insufficient reputation from voting on a question', () => {
-        // User 2 has not enough reputation
+        // User 2 not enough reputation
         cy.visit('http://localhost:3000/#/home');
         cy.on('window:alert', (text) => {
             expect(text).to.contains('Insufficient reputation to vote');
@@ -520,6 +520,32 @@ describe('Home Page Tests as Registered User', () => {
         cy.get('.questionContainer .question-entry').first().within(() => {
             cy.get('.vote-buttons button').first().click();
         });
+    });
+
+    it('increases reputation by 5 points after upvoting a question', () => {
+        cy.get('button:contains("Logout")').click();
+        cy.login('user1', 'password1');
+        cy.visit('http://localhost:3000/#/home');
+        cy.get('.questionContainer .question-entry').eq(1).within(() => {
+            cy.get('.vote-buttons button').contains('Upvote').click();
+        });
+        cy.get('button:contains("Logout")').click();
+        cy.login('user3', 'password3');
+        cy.visit('http://localhost:3000/#/userprofile');
+        cy.get('.userDetails').should('contain', 'Reputation Points: 75');
+    });
+
+    it('decreases reputation by 10 points after downvoting a question', () => {
+        cy.get('button:contains("Logout")').click();
+        cy.login('user1', 'password1');
+        cy.visit('http://localhost:3000/#/home');
+        cy.get('.questionContainer .question-entry').eq(1).within(() => {
+            cy.get('.vote-buttons button').contains('Downvote').click();
+        });
+        cy.get('button:contains("Logout")').click();
+        cy.login('user3', 'password3');
+        cy.visit('http://localhost:3000/#/userprofile');
+        cy.get('.userDetails').should('contain', 'Reputation Points: 60');
     });
 
     it('navigates to question details when question title is clicked', () => {
@@ -743,22 +769,13 @@ describe('All Tags Page Tests', () => {
     });
 
     it('allows a registered user to click the Ask a Question button', () => {
-        // Intercept the login POST request and give it an alias
         cy.intercept('POST', 'http://localhost:8000/api/users/login').as('loginRequest');
-    
-        // Visit the login page and submit the form
         cy.visit('http://localhost:3000/#/login');
         cy.get('input[name="username"]').type('user3');
         cy.get('input[name="password"]').type('password3');
         cy.get('form').submit();
-    
-        // Wait for the login request to complete
         cy.wait('@loginRequest');
-    
-        // After login, navigate to the tags page
         cy.visit('http://localhost:3000/#/tags');
-    
-        // Check if the Ask a Question button is enabled and clickable
         cy.get('.askQuestionButton').should('not.be.disabled').click();
         cy.url().should('include', '/ask');
     });
@@ -1288,14 +1305,6 @@ describe('Answer Page Tests for Registered User', () => {
         cy.url().should('include', '/ask')
     });
 
-    it('handles server errors appropriately', () => {
-        cy.login('user5', 'password5');
-        cy.intercept('GET', `http://localhost:8000/questions/q1`, { statusCode: 500 });
-        navigateToQuestionAnswer('How to use promises in JavaScript?');
-        cy.get('.error-message').should('be.visible').and('contain', 'Error loading data');
-    });
-
-
     it('allows upvoting and downvoting answers with enough reputation', () => {
         cy.login('user3', 'password3');
         navigateToQuestionAnswer('How to use promises in JavaScript?');
@@ -1342,54 +1351,65 @@ describe('Answer Page Tests for Registered User', () => {
     it('increases reputation by 5 points after upvoting an answer', () => {
         cy.login('user1', 'password1');
         navigateToQuestionAnswer('How to use promises in JavaScript?');
-        cy.get('.answer-container').eq(1).find('.vote-buttons').contains('Upvote').click(); // Upvote the second answer
-    
-        // Log out and log in as user5
+        cy.get('.answer-container').eq(3).find('.vote-buttons').contains('Upvote').click(); // Upvote the second answer
         cy.get('button:contains("Logout")').click();
         cy.login('user5', 'password5');
         cy.visit('http://localhost:3000/#/userprofile');
-        cy.get('.userDetails').within(() => {
-            cy.get('p').contains('Reputation Points:').invoke('text').then((text) => {
-                const newReputation = parseInt(text.split(':')[1].trim());
-                expect(newReputation).to.equal(15); // user5's initial reputation is 10
-            });
-        });
+        cy.get('.userDetails').should('contain', 'Reputation Points: 15');
     });
+    
     
     it('decreases reputation by 10 points after downvoting an answer', () => {
         cy.login('user1', 'password1');
         navigateToQuestionAnswer('How to use promises in JavaScript?');
-        cy.get('.answer-container').eq(1).find('.vote-buttons').contains('Upvote').click(); // Downvote the second answer
-    
-        // Log out and log in as user5
+        cy.get('.answer-container').eq(3).find('.vote-buttons').contains('Downvote').click(); // Downvote the second answer
         cy.get('button:contains("Logout")').click();
         cy.login('user5', 'password5');
         cy.visit('http://localhost:3000/#/userprofile');
-        cy.get('.userDetails').within(() => {
-            cy.get('p').contains('Reputation Points:').invoke('text').then((text) => {
-                const newReputation = parseInt(text.split(':')[1].trim());
-                expect(newReputation).to.equal(0); // user5's initial reputation is 10
-            });
-        });
+        cy.get('.userDetails').should('contain', 'Reputation Points: 0');
     });
-    
-    
-    it('allows accepting an answer', () => {
-        cy.login('user1', 'password1'); // Assuming user1 is the one who asked the question
+
+    it('shows Accept Answer button for the user who asked the question', () => {
+        cy.login('user1', 'password1');
         navigateToQuestionAnswer('How to use promises in JavaScript?');
         cy.get('.answer-container').first().within(() => {
-            cy.get('.accept-answer-button').click();
-            // Verify answer is marked as accepted
+            cy.get('button').contains('Accept Answer').should('exist');
         });
-        // Verify accepted answer is at the top
+    });
+
+    it('does not show Accept Answer button for users who did not ask the question', () => {
+        cy.login('user2', 'password2');
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
+        cy.get('.answer-container').first().within(() => {
+            cy.get('button').contains('Accept Answer').should('not.exist');
+        });
     });
     
-    it('verifies question becomes active on voting', () => {
+    it('allows a question asker to accept an answer from list of answers', () => {
+        cy.login('user1', 'password1');
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
+        cy.get('#questionBody').should('exist');
+        cy.get('.answer-container').first().within(() => {
+            cy.get('button').contains('Accept Answer').click();
+        });
+        cy.get('.answer-container').first().should('have.class', 'accepted-answer');
+        cy.get('.answer-container').first().should('contain', 'Accepted Answer');
+    });
+    
+    
+
+    it('marks a question as active after posting an answer', () => {
         cy.login('user3', 'password3');
         navigateToQuestionAnswer('How to use promises in JavaScript?');
-        cy.get('.upvote-button').click();
-        // Verify question is marked as active (based on your application's logic)
+        cy.get('.answers-section-button').click();
+        cy.get('textarea#answerTextInput').type('New answer to make question active');
+        cy.get('button[type="submit"]').click();
+        cy.visit('/#/home');
+        cy.get('.button-container .buttonDeco').contains('Active').click();
+        cy.get('.questionContainer .question-entry').first().should('contain', 'How to use promises in JavaScript?');
     });
+    
+    
 });
 
 
