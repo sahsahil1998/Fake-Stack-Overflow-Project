@@ -1676,105 +1676,96 @@ describe.only('User Profile Page Tests', () => {
         cy.contains('View All Your Tags').click();
         cy.url().should('include', '/userprofile/tags');
         cy.get('.user-tags-list').should('be.visible');
-        cy.get('.user-tags-list li').should('contain','javascript');
+        cy.get('.user-tags-list li').contains('JavaScript');
     });
 
     it('allows the user to create a new tag', () => {
-        // Navigate to the question creation page
-        cy.visit('/#/ask'); // Adjust URL based on your application's routing
-    
-        // Fill out the question form with a new tag
+        cy.visit('/#/ask');
         cy.get('#formTitleInput').type('Question with New Tag');
         cy.get('#formTextInput').type('Question text');
         cy.get('#formTagInput').type('newtag');
         cy.get('form').submit();
-    
-        // Navigate to user profile tags page
         cy.visit('/#/userprofile/tags');
-    
-        // Verify the new tag is present
         cy.get('.user-tags-list').should('contain', 'newtag');
     });
     
     
-
-    it('allows the user to edit a tag and reflects changes in associated questions', () => {
+    it('allows the user to edit tag not used by others and verify change', () => {
         cy.contains('View All Your Tags').click();
         cy.url().should('include', '/userprofile/tags');
-        
-        cy.get('.user-tags-list li').first().as('JavaScript');
-        cy.get('JavaScript').find('button').contains('Edit').click();
-        cy.get('input[type="text"]').clear().type('update');
-        cy.get('JavaScript').find('button').contains('Save').click();
-    
-        // Verify the tag is updated in the list
-        cy.get('JavaScript').should('contain', 'update');
-        navigateToQuestionAnswer('How to use promises in JavaScript?');
-    
-        // Navigate to a page where the tag is used in questions and verify the update
-        // This step depends on how your application displays tagged questions
-        // Example:
-        // cy.visit('/#/some-page-with-tagged-questions');
-        // cy.get('.some-question-list-selector').should('contain', 'Updated Tag Name');
-    });
-    
-    
-    
-    it('allows the user to delete a tag', () => {
-        cy.contains('View All Your Tags').click();
-        cy.url().should('include', '/userprofile/tags');
-        
-        cy.get('.user-tags-list li').first().as('firstTag');
-        cy.get('@firstTag').find('button').contains('Delete').click();
-        cy.on('window:confirm', () => true);
-        // Verify the tag is removed from the list
-        cy.get('@firstTag').should('not.exist');
-    });
-
-    it('prevents editing or deleting a tag if it is used by other users', () => {
-        cy.contains('View All Your Tags').click();
-        cy.url().should('include', '/userprofile/tags');
-    
-        // Assuming 'SomeTagUsedByOthers' is a tag used by other users
-        cy.get('.user-tags-list li').contains('SomeTagUsedByOthers').as('tagInUse');
-    
-        // Attempt to edit the tag
-        cy.get('@tagInUse').find('button').contains('Edit').click();
-        cy.get('input[type="text"]').clear().type('Attempted New Name');
-        cy.get('@tagInUse').find('button').contains('Save').click();
-    
-        // Assuming the application shows an alert for a tag in use
-        cy.on('window:alert', (str) => {
-            expect(str).to.contain('Cannot edit a tag used by other users');
+        cy.get('.user-tags-list').contains('Git').parents('li').then($li => {
+            cy.wrap($li).find('button').contains('Edit').click();
+            cy.wrap($li).find('input[type="text"]').clear().type('Github');
+            cy.wrap($li).find('button').contains('Save').click();
         });
+        cy.visit('http://localhost:3000/#/tags');
+        cy.get('.tagsContainer').should('contain', 'Github');
+    });
     
-        // Attempt to delete the tag
-        cy.get('@tagInUse').find('button').contains('Delete').click();
+    
+    
+    it('allows the user to delete a tag not used by others and verify by checking the number of tags', () => {
+        cy.contains('View All Your Tags').click();
+        cy.url().should('include', '/userprofile/tags');
+        cy.get('.user-tags-list').contains('Git').parents('li').then($li => {
+            cy.wrap($li).find('button').contains('Delete').click();
+            cy.on('window:confirm', () => true);
+        });
+        cy.visit('http://localhost:3000/#/tags');
+        cy.get('.tagsContainer .tagNode').should('have.length', 5);
+    });
+    
+    
+
+    it('prevents editing a tag if it is used by other users', () => {
+        cy.contains('View All Your Tags').click();
+        cy.url().should('include', '/userprofile/tags');
+        
+        cy.get('.user-tags-list').contains('JavaScript').parents('li').then($li => {
+            cy.wrap($li).find('button').contains('Edit').click();
+            cy.wrap($li).find('input[type="text"]').clear().type('Attempted New Name');
+            cy.wrap($li).find('button').contains('Save').click();
+            cy.on('window:alert', (str) => {
+                expect(str).to.contain('Error updating tag');
+            });
+        });
+    });
+    
+
+    it('prevents deleting a tag if it is used by other users', () => {
+        cy.contains('View All Your Tags').click();
+        cy.url().should('include', '/userprofile/tags');
+        
+        cy.get('.user-tags-list').contains('JavaScript').parents('li').as('JavaScriptTag');
+        cy.get('@JavaScriptTag').find('button').contains('Delete').click();
         cy.on('window:confirm', () => true);
-    
-        // Assuming the application shows an alert for a tag in use
         cy.on('window:alert', (str) => {
-            expect(str).to.contain('Cannot delete a tag used by other users');
+            expect(str).to.contain('Error deleting tag');
         });
     });
     
 
     it('displays a message when the user has no tags created', () => {
-        cy.login()
+        cy.login('user4', 'password4');
+        cy.visit('/#/userprofile');
         cy.contains('View All Your Tags').click();
         cy.url().should('include', '/userprofile/tags');
-        
-        // Assuming the user has no tags
-        cy.get('.user-tags-container').should('contain', 'No tags created yet');
+        cy.get('p').should('contain', 'No tags created yet. You must have at least 50 reputation to create new tags!');
     });
+    
     
     
     it('allows the user to view all answers posted by them', () => {
         cy.contains('View All Your Answers').click();
         cy.url().should('include', '/userprofile/answers');
         cy.get('.answers-list').should('be.visible');
-        // Add assertions to check the answers are displayed correctly
+        cy.get('.answers-list li').each(($li) => {
+            cy.wrap($li).find('a').should('have.attr', 'href').and('include', '/userprofile/answers/edit/');
+            cy.wrap($li).invoke('text').should('match', /...$/);
+        });
     });
+    
+    
 
     it('allows the user to edit an answer', () => {
         cy.visit('/#/userprofile/answers');
@@ -1786,8 +1777,9 @@ describe.only('User Profile Page Tests', () => {
             expect(str).to.equal('Answer updated successfully');
         });
         cy.url().should('include', '/userprofile/answers');
+        cy.get('.answers-list li').first().should('contain', 'Updated answer text');
     });
-    
+
     it('allows the user to delete an answer', () => {
         cy.visit('/#/userprofile/answers');
         cy.get('.answers-list li').first().find('a').click();
@@ -1799,14 +1791,38 @@ describe.only('User Profile Page Tests', () => {
             expect(str).to.equal('Answer deleted successfully');
         });
         cy.url().should('include', '/userprofile/answers');
+        cy.get('.answers-list li').should('not.contain', 'Updated answer text');
     });
     
+    
 
-    it('marks the corresponding question as active when an answer is reposted or deleted', () => {
-        // This test requires identifying a question associated with an answer,
-        // reposting or deleting that answer, and then verifying if the question's activity status is updated.
-        // The implementation details depend on how your application tracks and displays question activity.
+    it('marks the corresponding question as active when an answer is edited', () => {
+        cy.visit('/#/userprofile/answers');
+        cy.get('.answers-list li').first().find('a').click();
+        cy.url().should('include', '/userprofile/answers/edit/');
+        cy.get('textarea').clear().type('Updated answer text');
+        cy.get('form').submit();
+        cy.on('window:alert', (str) => {
+            expect(str).to.equal('Answer updated successfully');
+        });
+        cy.visit('/#/home');
+        cy.get('.button-container .buttonDeco').contains('Active').click();
+        cy.get('.questionContainer .question-entry').first().should('contain', 'Best practices for MongoDB schema design?');
     });
+
+    it('marks the corresponding question as active when an answer is deleted', () => {
+        cy.visit('/#/userprofile/answers');
+        cy.get('.answers-list li').first().find('a').click();
+        cy.url().should('include', '/userprofile/answers/edit/');
+        cy.get('button').contains('Delete Answer').click();
+        cy.on('window:confirm', () => true);
+        cy.on('window:alert', (str) => {
+            expect(str).to.equal('Answer deleted successfully');
+        });
+        cy.visit('/#/home');
+        cy.get('.button-container .buttonDeco').contains('Active').click();
+        cy.get('.questionContainer .question-entry').first().should('contain', 'Best practices for MongoDB schema design?');
+    }); 
     
 });
 

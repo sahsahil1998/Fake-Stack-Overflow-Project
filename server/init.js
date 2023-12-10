@@ -80,7 +80,7 @@ async function createInitialData() {
             new Question({
                 title: 'React State Management',
                 text: 'How do you effectively manage state in a large React application?',
-                tags: [tags[2]._id, tags[5]._id],
+                tags: [tags[2]._id],
                 asked_by: users[2]._id,
                 summary: 'State management in React',
                 answerCount: 0, 
@@ -140,6 +140,19 @@ async function createInitialData() {
                 upvotes: 5,
                 downvotes: 0,
                 ask_date_time: new Date('2023-01-10T08:00:00Z'),
+                last_answered_time: null
+            }),
+            new Question({
+                title: 'How to use arrow functions in JavaScript?',
+                text: 'I am having trouble understanding arrow functions in JavaScript. Can someone help?',
+                tags: [tags[0]._id],
+                asked_by: users[1]._id,
+                summary: 'Understanding JavaScript',
+                answerCount: 0,
+                views: 6,
+                upvotes: 7,
+                downvotes: 0,
+                ask_date_time: new Date('2022-01-01T08:00:00Z'),
                 last_answered_time: null
             }),
             // ... potentially more questions ...
