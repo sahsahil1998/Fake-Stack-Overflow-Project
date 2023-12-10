@@ -1582,7 +1582,7 @@ describe('New Answer Page Tests as Registered User', () => {
     
 });
 
-describe.only('User Profile Page Tests', () => {
+describe('User Profile Page Tests', () => {
     beforeEach(() => {
         cy.exec('node ../server/init.js');
         cy.login('user1', 'password1');
