@@ -1445,23 +1445,17 @@ describe('Comments Page Tests for Guest User', () => {
     it('navigates to the next set of comments and back to the first set for a specific answer', () => {
         cy.visit(`http://localhost:3000/#/home`);
         navigateToQuestionAnswer('How to use promises in JavaScript?');
-    
-        // Wait for the page to load
         cy.wait(1000);
-    
-        // Find an answer container with an enabled "Next" button in the comments section
         cy.get('.answer-container').each($answer => {
             const nextButton = $answer.find('.comments-section button:contains("Next"):not(:disabled)');
             if (nextButton.length > 0) {
                 nextButton.click();
-                cy.wait(1000); // Wait for comments to load
+                cy.wait(1000);
                 cy.get('div').filter(':contains("Comment:")'); 
-    
-                // Click the "Prev" button and verify the first set of comments
                 $answer.find('.comments-section button:contains("Prev")').click();
-                cy.wait(1000); // Wait for comments to load
+                cy.wait(1000);
                 cy.get('div').filter(':contains("Comment:")');
-                return false; // Break the .each() loop
+                return false;
             }
         });
     });
@@ -1495,6 +1489,59 @@ describe('Comments Page Tests for Guest User', () => {
         cy.get('.comments-section').should('contain', 'Failed to load comments.');
     });
 });
+
+
+describe('Comments Page Tests for Registered User', () => {
+    beforeEach(() => {
+        cy.exec('node ../server/init.js');
+        cy.login('user1', 'password1');
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
+    });
+
+    afterEach(() => {
+        cy.exec('node ../server/destroy.js');
+    });
+
+    it('allows a registered user to add a new comment', () => {
+        // Target the first comments section found on the page
+        cy.get('.comments-section').first().within(() => {
+            cy.get('input[type="text"]').type('This is a new comment from a registered user.');
+            cy.get('button').contains('Post Comment').click();
+        });
+    
+        // Verify the new comment is added
+        cy.get('.comments-section').first().should('contain', 'This is a new comment from a registered user.');
+    });
+    
+
+    it('rejects a new comment that exceeds 140 characters', () => {
+        const longComment = 'a'.repeat(141); // Generate a string longer than 140 characters
+    
+        cy.get('.comments-section').first().within(() => {
+            cy.get('input[type="text"]').type(longComment);
+            cy.get('button').contains('Post Comment').click();
+        });
+        cy.get('body').should('contain', 'Comment exceeds character limit of 140.');
+    });
+    
+    
+
+    it('rejects a comment from a user with insufficient reputation', () => {
+        // Assuming user2 has less than 50 reputation points
+        cy.login('user2', 'password2');
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
+    
+        cy.get('.comments-section').first().within(() => {
+            cy.get('input[type="text"]').type('This is a comment from a low-rep user.');
+            cy.get('button').contains('Post Comment').click();
+        });
+    
+        // Verify the page displays the specific text
+        cy.get('body').should('contain', 'Insufficient reputation to comment');
+    });
+    
+});
+
 
 
 

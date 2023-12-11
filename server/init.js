@@ -266,7 +266,7 @@ async function createInitialData() {
             new Comment({
                 text: 'This is a great question!',
                 commented_by: users[0]._id,
-                onQuestion: 'q1',
+                onQuestion: savedQuestions[0]._id,
                 comment_date_time: new Date('2023-01-02T14:00:00Z'),
                 upvotes: 1
 
@@ -282,7 +282,7 @@ async function createInitialData() {
             new Comment({
                 text: 'Very informative, thanks!',
                 commented_by: users[2]._id,
-                onQuestion: 'q1',
+                onQuestion: savedQuestions[0]._id,
                 comment_date_time: new Date('2023-01-02T16:00:00Z'),
                 upvotes: 3
             }),
@@ -312,14 +312,14 @@ async function createInitialData() {
                 commented_by: users[2]._id,
                 onQuestion: 'a7',
                 comment_date_time: new Date('2023-01-04T20:00:00Z'),
-                upvotes: 0
+                upvotes: 1
             }),
             new Comment({
                 text: 'Good question.',
                 commented_by: users[0]._id,
-                onQuestion: 'q1',
+                onQuestion: savedQuestions[0]._id,
                 comment_date_time: new Date('2023-01-03T20:00:00Z'),
-                upvotes: 0
+                upvotes: 2
             }),
             new Comment({
                 text: 'New comment!',
@@ -331,7 +331,7 @@ async function createInitialData() {
             new Comment({
                 text: 'New comment added!',
                 commented_by: users[0]._id,
-                onQuestion: 'q1',
+                onQuestion: savedQuestions[0]._id,
                 comment_date_time: new Date('2023-01-01T20:00:00Z'),
                 upvotes: 1
             }),
