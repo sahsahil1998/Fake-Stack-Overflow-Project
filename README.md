@@ -36,7 +36,7 @@ Add design docs in *images/*
 
 | Use-case Name   | Test case Name |
 |-----------------|----------------|
-| Home Page       | Test-1         |
+| Create Account     Tests 1- 9     
 |                 | Test-2         |
 | Login           | Test-1         |
 |                 | Test-2         |

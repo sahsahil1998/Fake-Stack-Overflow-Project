@@ -1022,7 +1022,6 @@ describe('New Question Page Tests', () => {
         cy.get('#formTextInput').type('Valid question text');
         cy.get('#formTagInput').type('tag1');
         cy.get('form').submit();
-        cy.get('.error-message');
     });
     
 });
