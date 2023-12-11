@@ -36,10 +36,20 @@ Add design docs in *images/*
 
 | Use-case Name   | Test case Name |
 |-----------------|----------------|
-| Home Page       | Test-1         |
-|                 | Test-2         |
-| Login           | Test-1         |
-|                 | Test-2         |
+| Welcome Page Navigation Tests for Guests  | Test-1         |
+| Create Account Tests                     | Test-2         |
+| Login Tests          | Test-3         |
+| Logout Tests                | Test-4         |
+| Home Page Tests as Guest User | Test-5  |
+| Home Page Tests as Registered User | Test-6 |
+| Search Functionality Tests         | Test - 7 |
+| Question Tags Page Tests           | Test - 8 |
+| New Question Page Tests            | Test - 9 |
+| Answer Page Tests for Guest User   | Test - 10 |
+| Answer Page Tests for Registered User | Test - 11 |
+| New Answer Page Tests as Registered User | Test - 12 |
+| User Profile Page Tests | Test - 13 |
+
 
 ## Design Patterns Used
 
