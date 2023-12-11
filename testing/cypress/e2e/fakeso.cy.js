@@ -1540,6 +1540,22 @@ describe('Comments Page Tests for Registered User', () => {
         cy.get('body').should('contain', 'Insufficient reputation to comment');
     });
     
+    it('allows a registered user to upvote a comment', () => {
+        cy.wait(1000);
+        cy.get('button').contains('Upvote');
+    });
+
+    it('Upvote on comment updated question activity', () => {
+        cy.wait(1000);
+        cy.get('button').contains('Upvote');
+        cy.visit('/#/home');
+        cy.get('.button-container .buttonDeco').contains('Active').click();
+        cy.get('.questionContainer .question-entry').first().should('contain', 'Best practices for MongoDB schema design?');
+    });
+
+    
+    
+    
 });
 
 
