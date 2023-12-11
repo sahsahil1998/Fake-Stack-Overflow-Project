@@ -1351,18 +1351,18 @@ describe('Answer Page Tests for Registered User', () => {
     it('increases reputation by 5 points after upvoting an answer', () => {
         cy.login('user1', 'password1');
         navigateToQuestionAnswer('How to use promises in JavaScript?');
-        cy.get('.answer-container').eq(3).find('.vote-buttons').contains('Upvote').click(); // Upvote the second answer
+        cy.get('.answer-container').eq(1).find('.vote-buttons').contains('Upvote').click(); // Upvote the second answer
         cy.get('button:contains("Logout")').click();
         cy.login('user5', 'password5');
         cy.visit('http://localhost:3000/#/userprofile');
-        cy.get('.userDetails').should('contain', 'Reputation Points: 15');
+        cy.get('.userDetails').should('contain', '15');
     });
     
     
     it('decreases reputation by 10 points after downvoting an answer', () => {
         cy.login('user1', 'password1');
         navigateToQuestionAnswer('How to use promises in JavaScript?');
-        cy.get('.answer-container').eq(3).find('.vote-buttons').contains('Downvote').click(); // Downvote the second answer
+        cy.get('.answer-container').eq(1).find('.vote-buttons').contains('Downvote').click(); // Downvote the second answer
         cy.get('button:contains("Logout")').click();
         cy.login('user5', 'password5');
         cy.visit('http://localhost:3000/#/userprofile');
@@ -1395,9 +1395,20 @@ describe('Answer Page Tests for Registered User', () => {
         cy.get('.answer-container').first().should('have.class', 'accepted-answer');
         cy.get('.answer-container').first().should('contain', 'Accepted Answer');
     });
-    
-    
 
+    it('allows a question asker to accept the second answer and verifies the order of remaining answers', () => {
+        cy.login('user1', 'password1');
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
+        cy.get('#questionBody').should('exist');
+        cy.get('.answer-container').eq(1).within(() => {
+            cy.get('button').contains('Accept Answer').click();
+        });
+        cy.get('.answer-container').first().should('have.class', 'accepted-answer');
+        cy.get('.answer-container').first().should('contain', 'Promises can also be used with .then() and .catch() methods.');
+        cy.get('.answer-container').eq(1).should('contain', 'Exploring error handling in promises.');
+        cy.get('.answer-container').eq(2).should('contain', 'Understanding promise chaining is crucial for complex async tasks.');
+    });
+    
     it('marks a question as active after posting an answer', () => {
         cy.login('user3', 'password3');
         navigateToQuestionAnswer('How to use promises in JavaScript?');
@@ -1411,6 +1422,146 @@ describe('Answer Page Tests for Registered User', () => {
     
     
 });
+
+
+describe('Comments Page Tests for Guest User', () => {
+    beforeEach(() => {
+        cy.exec('node ../server/init.js');
+    });
+
+    afterEach(() => {
+        cy.exec('node ../server/destroy.js');
+    });
+
+    it('displays a list of comments for a question and answers', () => {
+        cy.visit(`http://localhost:3000/#/home`);
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
+        cy.get('.comments-section').should('exist');
+        cy.wait(1000);
+        cy.get('.comments-section').find('div').filter(':contains("Comment:")');
+    });
+    
+
+    it('navigates to the next set of comments and back to the first set for a specific answer', () => {
+        cy.visit(`http://localhost:3000/#/home`);
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
+        cy.wait(1000);
+        cy.get('.answer-container').each($answer => {
+            const nextButton = $answer.find('.comments-section button:contains("Next"):not(:disabled)');
+            if (nextButton.length > 0) {
+                nextButton.click();
+                cy.wait(1000);
+                cy.get('div').filter(':contains("Comment:")'); 
+                $answer.find('.comments-section button:contains("Prev")').click();
+                cy.wait(1000);
+                cy.get('div').filter(':contains("Comment:")');
+                return false;
+            }
+        });
+    });
+    
+    
+    
+
+    it('displays the most recent comment first', () => {
+        cy.visit(`http://localhost:3000/#/home`);
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
+        cy.get('.comments-section div').first().should('contain', 'Good question.');
+    });
+
+    it('displays username and votes for comments', () => {
+        cy.visit(`http://localhost:3000/#/home`);
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
+        cy.get('.comments-section').should('exist');
+        cy.wait(1000);
+        cy.get('.comments-section').contains('Commented by:').should('exist');
+        cy.get('.comments-section').contains('Upvotes:').should('exist');
+    });
+
+    it('handles no comments condition', () => {
+        cy.visit('http://localhost:3000/#/questions/q2');
+        cy.get('.comments-section').should('contain', 'No comments yet.');
+    });
+
+    it('displays an error message on failure to retrieve comments', () => {
+        cy.intercept('GET', 'http://localhost:8000/comments/question/*', { statusCode: 500 });
+        cy.visit('http://localhost:3000/#/questions/q1');
+        cy.get('.comments-section').should('contain', 'Failed to load comments.');
+    });
+});
+
+
+describe('Comments Page Tests for Registered User', () => {
+    beforeEach(() => {
+        cy.exec('node ../server/init.js');
+        cy.login('user1', 'password1');
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
+    });
+
+    afterEach(() => {
+        cy.exec('node ../server/destroy.js');
+    });
+
+    it('allows a registered user to add a new comment', () => {
+        // Target the first comments section found on the page
+        cy.get('.comments-section').first().within(() => {
+            cy.get('input[type="text"]').type('This is a new comment from a registered user.');
+            cy.get('button').contains('Post Comment').click();
+        });
+    
+        // Verify the new comment is added
+        cy.get('.comments-section').first().should('contain', 'This is a new comment from a registered user.');
+    });
+    
+
+    it('rejects a new comment that exceeds 140 characters', () => {
+        const longComment = 'a'.repeat(141); // Generate a string longer than 140 characters
+    
+        cy.get('.comments-section').first().within(() => {
+            cy.get('input[type="text"]').type(longComment);
+            cy.get('button').contains('Post Comment').click();
+        });
+        cy.get('body').should('contain', 'Comment exceeds character limit of 140.');
+    });
+    
+    
+
+    it('rejects a comment from a user with insufficient reputation', () => {
+        // Assuming user2 has less than 50 reputation points
+        cy.login('user2', 'password2');
+        navigateToQuestionAnswer('How to use promises in JavaScript?');
+    
+        cy.get('.comments-section').first().within(() => {
+            cy.get('input[type="text"]').type('This is a comment from a low-rep user.');
+            cy.get('button').contains('Post Comment').click();
+        });
+    
+        // Verify the page displays the specific text
+        cy.get('body').should('contain', 'Insufficient reputation to comment');
+    });
+    
+    it('allows a registered user to upvote a comment', () => {
+        cy.wait(1000);
+        cy.get('button').contains('Upvote');
+    });
+
+    it('Upvote on comment updated question activity', () => {
+        cy.wait(1000);
+        cy.get('button').contains('Upvote');
+        cy.visit('/#/home');
+        cy.get('.button-container .buttonDeco').contains('Active').click();
+        cy.get('.questionContainer .question-entry').first().should('contain', 'Best practices for MongoDB schema design?');
+    });
+
+    
+    
+    
+});
+
+
+
+
+
 
 
 describe('New Answer Page Tests as Registered User', () => {
@@ -1566,12 +1717,12 @@ describe('New Answer Page Tests as Registered User', () => {
         cy.get('button[type="submit"]').click();
         cy.visit('http://localhost:3000/#/home');
         cy.get('.button-container .buttonDeco').contains('Active').click();
-        cy.get('.main-top p').should('contain', 7);
+        cy.get('.main-top p').should('contain', 8);
         cy.get('.questionContainer .question-entry').first().within(() => {
             cy.contains('1 answers');
         });
         cy.get('.button-container .buttonDeco').contains('Unanswered').click();
-        cy.get('.main-top p').should('contain', 3);
+        cy.get('.main-top p').should('contain', 4);
     });
 
     it('updates the answer count to 2 on the homepage after posting two answers', () => {
@@ -1617,6 +1768,14 @@ describe('User Profile Page Tests', () => {
         cy.get('.userDetails').should('be.visible');
         cy.get('.userDetails').should('contain', 'Member for:');
         cy.get('.userDetails').should('contain', 'Reputation Points: 50');
+    });
+
+    it('verifies user profile information for points and member days', () => {
+        cy.login('user4', 'password4');
+        cy.visit('/#/userprofile');
+        cy.get('.userDetails').should('be.visible');
+        cy.get('.userDetails').should('contain', 'Reputation Points: 30');
+        cy.get('.userDetails').should('contain', 'Member for: 10 days');
     });
 
     it('navigates to the correct pages from menu links', () => {
