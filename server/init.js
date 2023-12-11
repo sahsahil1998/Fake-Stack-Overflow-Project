@@ -158,7 +158,6 @@ async function createInitialData() {
                 ask_date_time: new Date('2022-01-01T08:00:00Z'),
                 last_answered_time: null
             }),
-            // ... potentially more questions ...
         ];
 
         const savedQuestions = await Promise.all(questions.map(question => question.save()));
@@ -275,8 +274,7 @@ async function createInitialData() {
             new Comment({
                 text: 'I have a follow-up question.',
                 commented_by: users[1]._id,
-
-                onAnswer: 'a1',
+                onAnswer: 'a7',
                 comment_date_time: new Date('2023-01-02T15:00:00Z'),
                 upvotes: 2
 
@@ -291,28 +289,28 @@ async function createInitialData() {
             new Comment({
                 text: 'Could you provide more examples?',
                 commented_by: users[3]._id,
-                onAnswer: 'a2',
+                onAnswer: 'a1',
                 comment_date_time: new Date('2023-01-02T17:00:00Z'),
                 upvotes: 4
             }),
             new Comment({
                 text: 'This answer cleared my doubts.',
                 commented_by: users[4]._id,
-                onAnswer: 'a2',
+                onAnswer: 'a7',
                 comment_date_time: new Date('2023-01-02T18:00:00Z'),
                 upvotes: 2
             }),
             new Comment({
                 text: 'Can you elaborate on this point?',
                 commented_by: users[2]._id,
-                onAnswer: 'a2',
+                onAnswer: 'a7',
                 comment_date_time: new Date('2023-01-02T19:00:00Z'),
                 upvotes: 2
             }),
             new Comment({
                 text: 'This is exactly what I was looking for!',
                 commented_by: users[2]._id,
-                onQuestion: 'a1',
+                onQuestion: 'a7',
                 comment_date_time: new Date('2023-01-04T20:00:00Z'),
                 upvotes: 0
             }),
@@ -326,7 +324,7 @@ async function createInitialData() {
             new Comment({
                 text: 'New comment!',
                 commented_by: users[0]._id,
-                onAnswer: 'a2',
+                onAnswer: 'a7',
                 comment_date_time: new Date('2023-01-02T20:00:00Z'),
                 upvotes: 1
             }),
