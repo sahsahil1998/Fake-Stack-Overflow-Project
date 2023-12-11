@@ -65,5 +65,7 @@ The constructor in the class DataBaseService includes a check for single instanc
 The single instance of it is created in server.js file where the server connects to the database.
 
 ## Fixed CodeQL security bug:-
-
+The CodeQL was giving the following error and it was fixed.
+This route handler performs database access, but is not rate-limited. - CodeQL
+It was fixed by installing rate Limiter and importing in routes
 Added rate limiter in userRoutes.js
