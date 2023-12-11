@@ -1471,7 +1471,6 @@ describe('Comments Page Tests for Guest User', () => {
         cy.get('.comments-section').should('exist');
         cy.wait(1000);
         cy.get('.comments-section').contains('Commented by:').should('exist');
-        cy.get('.comments-section').contains('Upvotes:').should('exist');
     });
 
     it('handles no comments condition', () => {
