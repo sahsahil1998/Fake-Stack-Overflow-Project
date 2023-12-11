@@ -6,6 +6,7 @@ const Question = require('../models/questions');
 const Answer = require('../models/answers');
 const Tag = require('../models/tags');
 const bcrypt = require('bcrypt');
+const rateLimit = require('express-rate-limit');
 
 // Function to validate email format
 const validateEmail = (email) => {
@@ -214,7 +215,13 @@ router.get('/answers', authenticateUser, async (req, res) => {
     }
 });
 
-router.get('/tags', authenticateUser, async (req, res) => {
+const tagApiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    message: 'Too many requests from this IP, please try again after 15 minutes'
+});
+
+router.get('/tags',tagApiLimiter, authenticateUser, async (req, res) => {
     try {
         if (!req.session.user || !req.session.user.username) {
             return res.status(401).send({ message: 'Unauthorized' });
