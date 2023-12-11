@@ -332,7 +332,7 @@ describe('Home Page Tests as Guest User', () => {
     
         // Reload the page to trigger the intercepted API call
         cy.visit('http://localhost:3000/#/home');
-        cy.get('.back').should('be.visible').click();
+        cy.get('.back').click();
         cy.url().should('include', '/');
     });
 
@@ -732,7 +732,7 @@ describe('Search Functionality Tests', () => {
         // Reload the page to trigger the intercepted API call
         cy.visit('http://localhost:3000/#/home');
         cy.get('.error-message').should('be.visible');
-        cy.get('.back').should('be.visible').click();
+        cy.get('.back').click();
         cy.url().should('include', '/');
     });
 });
