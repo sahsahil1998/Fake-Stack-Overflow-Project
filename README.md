@@ -1,7 +1,6 @@
 [![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-24ddc0f5d75046c5622901739e7c5dd533143b0c8e959d652212380cedb1ea36.svg)](https://classroom.github.com/a/hxTav0v1)
 Login with your Northeastern credentials and read the Project Specifications [here](https://northeastern-my.sharepoint.com/:w:/g/personal/j_mitra_northeastern_edu/EcUflH7GXMBEjXGjx-qRQMkB7cfHNaHk9LYqeHRm7tgrKg?e=oZEef3).
 
-Add design docs in *images/*
 
 ## Instructions to setup and run project
 1. Clone the repository to your local machine.
@@ -36,10 +35,23 @@ Add design docs in *images/*
 
 | Use-case Name   | Test case Name |
 |-----------------|----------------|
-| Create Account     Tests 1- 9     
-|                 | Test-2         |
-| Login           | Test-1         |
-|                 | Test-2         |
+| Welcome Page Navigation Tests for Guests  | Test-1         |
+| Create Account Tests                     | Test- 2-9        |
+| Login Tests          | Test-10-13         |
+| Logout Tests                | Test-14-18         |
+| Home Page Tests as Guest User | Test-19-31  |
+| Home Page Tests as Registered User | Test-31-48 |
+| Search Functionality Tests         | Test - 49-57 |
+| All Tests| Test - 59- 64
+| Question Tags Page Tests           | Test - 65-68 |
+| New Question Page Tests            | Test - 69-74 |
+| Answer Page Tests for Guest User   | Test - 75-88 |
+| Answer Page Tests for Registered User | Test - 89-107 |
+| Comments Page Tests for Guest User | Test - 108-113|
+| Comments Page Tests for Registered User | Test - 114-118|
+| New Answer Page Tests as Registered User | Test - 119-132 |
+| User Profile Page Tests | Test - 133-168 |
+
 
 ## Design Patterns Used
 
